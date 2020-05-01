@@ -129,6 +129,10 @@ variables
 		42: SCAN_WAIT
 		43: _SERVER_TIMER_L
 		44: _SERVER_TIMER_R
+		45: _TEMP_CAM_START
+		46: _TEMP_CAM_END
+		47: _TEMP_CAM_SIZE
+		48: _TEMP_CAM_CUR
 
 	player:
 		0: l_hit_store
@@ -1039,7 +1043,7 @@ disabled rule("pause scan")
 	}
 }
 
-rule("360 camera")
+disabled rule("360 camera")
 {
 	event
 	{
@@ -1285,5 +1289,60 @@ rule("return 100%")
 	actions
 	{
 		Set Slow Motion(100);
+	}
+}
+
+rule("temp camera array")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global._TEMP_CAM_SIZE = 8;
+		Global._TEMP_CAM_START = Empty Array;
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(-0.190, 1.850, 1));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(-0.190, 1.850, -1.400));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(-1.300, 1.850, 0.170));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(1.300, 1.850, 0.170));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(0, 1.880, 0.600));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(0, 1.880, -0.600));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(0.600, 1.880, 0));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(-0.600, 1.880, 0));
+		Global._TEMP_CAM_END = Empty Array;
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(-0.190, 1.850, 0.170));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(-0.190, 1.850, 0.170));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(-0.190, 1.850, 0.170));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(-0.190, 1.850, 0.170));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(0, 1.880, 0));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(0, 1.880, 0));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(0, 1.880, 0));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(0, 1.880, 0));
+	}
+}
+
+rule("temp camera action")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Secondary Fire) == True;
+	}
+
+	actions
+	{
+		Set Invisible(All Players(All Teams), All);
+		Set Invisible(Players In Slot(0, Team 2), None);
+		Start Camera(Event Player, Global._TEMP_CAM_START[Global._TEMP_CAM_CUR], Global._TEMP_CAM_END[Global._TEMP_CAM_CUR], 0);
+		Global._TEMP_CAM_CUR = (Global._TEMP_CAM_CUR + 1) % Global._TEMP_CAM_SIZE;
 	}
 }
