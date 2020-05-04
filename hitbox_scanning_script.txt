@@ -256,8 +256,8 @@ rule("respawn the bot")
 		disabled Start Holding Button(Event Player, Secondary Fire);
 		Set Max Health(Event Player, 1000);
 		Start Heal Over Time(Event Player, Event Player, 9999, 10000);
-		disabled Call Subroutine(action_b1_routine_junkrat);
-		Call Subroutine(action_place_trap);
+		Call Subroutine(action_b1_routine_junkrat);
+		disabled Call Subroutine(action_place_trap);
 		"5 below: for slow scan, need disable first hero spawn when server starts"
 		disabled Set Slow Motion(10);
 		disabled Press Button(Event Player, Ultimate);
