@@ -34,6 +34,23 @@ The position of the hits are stored in **player variable of the player**, in `l_
 1. Set the resolution. `Global.DELTA_DEPTH_STATIC`, `Global.DELTA_HEIGHT_STATIC`
 1. Set the orientation of the scan. `Voice Line Right`, `Voice Line Left` in game
 
+## Format of the copied csv
+
+Each line is one entry, the syntax is
+`server_tick, variable_target, variable_1, variable_2, ... , variable_26`
+
+Therefore after one scan, you should only see the following types of lines
+* `0.016, veriable_target, 0, 0, ...,0` (26 zeroes)
+   * The first two lines must be in this format, they contains no data and can be ignored
+* `server_tick, variable_target, {}, {}, 0, 0, ... ,0` (24 zeroes)
+   * This is no hits in that vertical slice
+* `server_tick, variable_target, {(point_1); (point_2); ... ; (point_n)}, {(point_1); (point_2); ... ; (point_n)}, 0, 0, ... ,0` (24 zeroes)
+   * This is n hits in both directions
+* `server_tick, variable_target, {(point_1); (point_2); ... ; (point_n)}, {}, 0, 0, ... ,0` (24 zeroes)
+   * This is L scan only
+* `server_tick, variable_target, {}, {(point_1); (point_2); ... ; (point_n)}, 0, 0, ... ,0` (24 zeroes)
+   * Similarily, this is R scan only
+
 ## Notes
 
-1. If you have many data (>30000 in total), the game will freeze after copy. This is completely normal, the copy is processing in the background. The script is only designed to do 1 scan per session.
+1. If you have many data (>30000 in total), the game will freeze after copy. This is completely normal, the copy is processing in the background. The script is only designed to do 1 scan per session, so expect to get kicked by the server after copying the data.
