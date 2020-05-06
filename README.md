@@ -4,7 +4,7 @@ Contains the Workshop scripts I used for the Hitbox project. As well as the plac
 
 # 1.48 PTR changes (Echo and Reinhardt)
 
-[![Play](https://img.youtube.com/vi/KzmIBtG1sf0/maxresdefault.jpg)](https://youtu.be/KzmIBtG1sf0)
+[![Play](https://img.youtube.com/vi/JEdYlv4zo2o/maxresdefault.jpg)](https://youtu.be/JEdYlv4zo2o)
 
 ## Links
 
@@ -30,6 +30,8 @@ More detailed numbers (percentage to old model in brackets):
 \*\* This number was taken by considering the entire Head hitbox, disregarding the obstructed portion (because it is hard to define the separation between body and head. Take these numbers very carefully
 
 # Current Hitboxes (1.47)
+
+[![Play](https://img.youtube.com/vi/KzmIBtG1sf0/maxresdefault.jpg)](https://youtu.be/KzmIBtG1sf0)
 
 ## Links
 
