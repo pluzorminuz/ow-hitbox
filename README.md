@@ -4,6 +4,8 @@ Contains the Workshop scripts I used for the Hitbox project. As well as the plac
 
 # 1.48 PTR changes (Echo and Reinhardt)
 
+[![Play](https://img.youtube.com/vi/KzmIBtG1sf0/maxresdefault.jpg)](https://youtu.be/KzmIBtG1sf0)
+
 ## Links
 
 [Click here for the album](https://imgur.com/a/A3Yqjso)
