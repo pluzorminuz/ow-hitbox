@@ -1,6 +1,138 @@
-# owws-scripts
+# ow-hitbox
 
-Contains the Workshop scripts I used for the Hitbox project. With other useful scripts maybe.
+Contains the Workshop scripts I used for the Hitbox project. As well as the place where everything will be kept up-to-date, instead of updating the Reddit post every time.
+
+# 1.48 PTR changes (Echo and Reinhardt)
+
+## Links
+
+[Click here for the album](https://imgur.com/a/A3Yqjso)
+
+[Click here for an orthographic comparison](https://youtu.be/JEdYlv4zo2o)
+
+## 
+
+Blizzard released [PTR 1.48](https://blizztrack.com/overwatch/ptr/1-48-0-0-68309) today with changes to Echo and Reinhardt's head hitbox. Both hero's head hitbox **volume** was reduced to **78.48%** and **76.93%** of the original respectively. A new hitbox for Echo was made for her obtrusion on her shoulders (highlighted in yellow in the album).
+
+Since these changes could be furthur altered during the PTR cycle, the 360 degree version will be release when these changes hit live.
+
+More detailed numbers (percentage to old model in brackets):
+
+|Hero (%Ana)|Head SA|Body SA|Total SA|Total Vol|Total Vol ^2/3|Head Vol\*\*|Head Vol\*\* ^2/3|
+|:--|:--|:--|:--|:--|:--|:--|:--|
+|Reinhardt (1.47)|212.2|446.3|427|902|433.3|420.8|260.6|
+|Reinhardt (1.48)|158 (74.44)|446.4 (100.02)|422.6 (98.97)|894.9 (99.21)|431 (99.47)|323.7 (76.93)|218.8 (83.96)|
+|Echo (1.47)|136.8|152.4|151.1|138.9|124.5|171.2|143.1|
+|Echo (1.48)|100.4 (73.38)|154.1 (101.12)|149.6 (99.05)|137.4 (98.97)|123.6 (99.31)|134.3 (78.48)|121.7 (85.08)|
+
+\*\* This number was taken by considering the entire Head hitbox, disregarding the obstructed portion (because it is hard to define the separation between body and head. Take these numbers very carefully
+
+# Current Hitboxes (1.47)
+
+## Links
+
+[Click here for the GIF album](https://imgur.com/a/AN33T4F)
+
+[Click here for the YouTube playlist](https://www.youtube.com/playlist?list=PL61EEnh7kA_NEbti6BLQmXEtjzcBKuRdY)
+
+[Click here for an orthographic comparison](https://youtu.be/KzmIBtG1sf0)
+
+[Video commentary](https://youtu.be/xsXvr3Cr5k8)
+
+Feel free to use these resources for whatever you want.
+
+## 
+
+This is a follow-up post to [this back in November 2019](https://www.reddit.com/r/Overwatch/comments/dzzzhh/visualizing_hitboxes_in_overwatch/). This version provides a 360 degree view of the entire hero with hitbox representation at a very high precision, as well as showing the critical areas.
+
+Scans were performed using a Workshop script, and then extracted from the game, converted, and imported to Blender. Capsules and polygons meshes were fitted to the point cloud. The result was then overlayed onto in-game screenshots.
+
+Since the entire process takes time, the scans were performed since December 2019 to March 2020 through many patches, both on Live and PTR. The [detailed list of patch used, and misc. stats are shown here](https://docs.google.com/spreadsheets/d/19t4ftrkYY3IfmQ2YlylAha0VbOfDjiJ4InIKyjwlX70/edit?usp=sharing)
+
+Improvements over the last version:
+* Full 360 degree view, can use any angles in the future since the data has already been taken, only new screenshots are needed.
+* Very high precision, up to 5 decimal places (±0.000005m or ±0.005mm in error). This allow spheres to be fitted at high accuracy.
+* Shows critical area without relying on in-game critical detection.
+* Shows hitboxes under ground level. Blue spots indicated hitboxes close to or intersecting the ground. Hitboxes below ground are fainter.
+
+The only drawback is still there is no consistent way of locking the idle animation — freezing a hero does not set its animation to 0. So for heroes like Zenyatta, Sigma, Lucio, Mercy, Mei suffer from a more discrepancy between each screenshot than other heroes.
+
+We can also calculate the size of the hitboxes for comparison. Here I used various metric, including **Surface Area (SA)** and **Volume (Vol)** and **Volume ^2/3**, as pointed out by u/nspr, the third metric may be a better number to represent the size of the hitboxes. All numbers in %Ana.
+
+\*\* This number was taken by considering the entire Head hitbox, disregarding the obstructed portion (because it is hard to define the separation between body and head. Take these numbers very carefully
+
+|Hero (%Ana)|Head SA|Body SA|Total SA|Total Vol|Total Vol ^2/3|Head Vol\*\*|Head Vol\*\* ^2/3|
+|:--|:--|:--|:--|:--|:--|:--|:--|
+|**Tank**|
+|D.Va|114.6|505|472.7|1179.8|518.2|463|277.8|
+|D.Va (Pilot)|115.4|97.5|99|105.5|103.6|124.6|115.8|
+|Orisa|271.8|504.1|484.9|866.1|421.7|505.3|294.5|
+|Reinhardt|212.2|446.3|427|902|433.3|420.8|260.6|
+|Roadhog|267.4|361.6|353.8|761.1|386.9|678.9|358.5|
+|Sigma|132.7|207.5|201.3|232.7|175.6|204.7|161.2|
+|Winston|294.8|449.9|437.1|955.5|450.3|771.2|390.3|
+|Winston (Primal)|513.2|737.3|718.8|2155.6|774.6|1678.1|655.4|
+|Wrecking Ball|183.1|604|569.2|1181.9|518.9|446.2|271|
+|Wrecking Ball (Ball)|0|275.9|253.1|785.9|395.3|0|0|
+|Zarya|165.9|152.2|153.4|202.7|160.2|227.9|173.2|
+|**Support**|
+|Ana|100|100|100|100|100|100|100|
+|Baptiste|75.1|136.8|131.7|138.3|124.1|105.3|103.5|
+|Brigitte|87.6|123.5|120.5|123.4|115.1|99.4|99.6|
+|Lúcio|80.7|114|111.2|126.7|117.1|74.7|82.3|
+|Mercy|93.8|112.8|111.3|106.2|104.1|100.5|100.4|
+|Moira|116.4|98.8|100.2|121.8|114.1|171.2|143.1|
+|Zenyatta|149.7|102|106|152.1|132.3|227.9|173.2|
+|Zenyatta (Transcendence)|145.4|114.9|117.4|161.7|137.7|227.9|173.2|
+|**Damage**|
+|Ashe|156|99.2|103.9|89|92.6|178.2|147|
+|Bastion (Recon)|225.2|296.4|290.5|379.2|243.2|321.1|217.7|
+|Bastion (Sentry)|79.8|285.9|268.8|372.8|240.4|184.3|150.3|
+|Bastion (Tank)|0|368.9|338.4|196|156.6|0|0|
+|Doomfist|122.2|234.1|224.8|286.5|201.7|158.6|136|
+|Echo|136.8|152.4|151.1|138.9|124.5|171.2|143.1|
+|Genji|95.8|115.2|113.6|122|114.2|124.6|115.8|
+|Hanzo|91.7|116.9|114.8|121.7|114|93.2|95.4|
+|Junkrat|119.2|132.5|131.4|98.8|99.2|128.6|118.3|
+|McCree|122.2|152.1|149.7|121.8|114.1|165.7|140.1|
+|Mei|73.4|97.7|95.7|101.1|100.8|104.9|103.2|
+|Pharah|129.2|206.6|200.2|196.1|156.7|178.2|147|
+|Reaper|155.6|143.4|144.5|195|156.1|227.9|173.2|
+|Sombra|83.2|92.3|91.6|77.9|84.7|87.3|91.3|
+|Soldier: 76|112.4|120|119.4|142.8|126.8|171.2|143.1|
+|Symmetra|136.9|114.7|116.5|130.1|119.2|166.1|140.3|
+|Tracer|119.6|117.2|117.4|139.9|125.1|124.6|115.8|
+|Torbjörn|144.8|166.7|164.9|222.8|170.6|262.1|190.1|
+|Widowmaker|148.9|107.7|111.2|131.7|120.1|178.2|147|
+
+## Raw Data
+
+If you want the raw numbers, it’s included in [the spreadsheet](https://docs.google.com/spreadsheets/d/19t4ftrkYY3IfmQ2YlylAha0VbOfDjiJ4InIKyjwlX70/edit?usp=sharing).
+
+If you want the raw data, [it's here as well](https://drive.google.com/file/d/1mOzWT3Dlp9ty1Vp7vBkOM-RE8sfQTOic/view?usp=sharing)
+
+## Trivia:
+
+* Total amount of data point extracted: 7279051
+* Out of all hitboxes, only 3 are not in form of a sphere/capsule. This is in
+  1. Rip Tire model on Junkrat’s back (I believe the actual Tire in his ultimate is the same)
+  1. The lid on Hammond’s mech
+  1. The treads on Bastion’s Tank form
+* A lot of hitboxes have “nice” numbers. For example, capsule with radius or length 0.20000, 0.40000, 0.25600, 0.43200, 0.12800. This is NOT observed in Sigma’s hitboxes
+* The camera settings in-game are 103 degrees, with a distance of 3.09m (exception: 3.4m for Wrecking Ball’s Mech Form).
+* The outbreak of COVID-19 gave me enormous amount of free time to work on this project
+* The Workshop update on patch 1.45 speeds up the scanning process by at least 10 times
+* If you looked close enough, one of Winston’s Primal hitbox is coloured cyan, because it wasn’t fitted, it was placed manually
+* Mercy holding a pistol is not included because Mercy’s hitboxes alone took me soooo long
+* The bonus clip is for Wrecking Ball’s T-Pose / reference pose. Someone found a glitch of [forcing Hammond dummy bot to crouch](https://www.reddit.com/r/Overwatch/comments/fe90um/til_wrecking_ball_has_an_unreleased_crouch/). Turns out there is no hitbox pose that match the ref pose, it just uses its idle pose. Just a funny glitch I’d like to share.
+
+## Workshop Script
+
+[Click here for the Workshop script I used](https://drive.google.com/file/d/1bWv0hWLdb3MbApAp6m0bdPu5kYHsFwGl/view?usp=sharing)
+
+Or just use the code **GBFGK** (for 1.46)
+
+~~Yes the raw data will be available soon.~~ 
 
 # Documentation
 
