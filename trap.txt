@@ -1,0 +1,1559 @@
+settings
+{
+	lobby
+	{
+		Data Center Preference: South Korea
+		Max Spectators: 0
+		Max Team 1 Players: 1
+		Max Team 2 Players: 1
+	}
+
+	modes
+	{
+		disabled Control
+		{
+			Limit Valid Control Points: First
+		}
+
+		Team Deathmatch
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Manual
+			Respawn Time Scalar: 0%
+			Spawn Health Packs: Disabled
+		}
+	}
+
+	heroes
+	{
+		Team 1
+		{
+			Mei
+			{
+				Weapon Freeze Duration Scalar: 500%
+				Weapon Freeze Rate Scalar: 50%
+			}
+		}
+
+		Team 2
+		{
+			Mercy
+			{
+				Weapons Enabled: Caduceus Staff Only
+			}
+		}
+
+		General
+		{
+			Ability Cooldown Time: 0%
+			Infinite Ultimate Duration: On
+			Ultimate Duration: 500%
+			Ultimate Generation: 500%
+			Ultimate Generation - Combat: 500%
+			Ultimate Generation - Passive: 500%
+
+			Bastion
+			{
+				Infinite Ultimate Duration: On
+				Spawn With Ultimate Ready: On
+			}
+
+			McCree
+			{
+				Combat Roll: Off
+				Damage Dealt: 500%
+				Flashbang: Off
+				No Ammunition Requirement: On
+				Quick Melee: Off
+				Secondary Fire: Off
+				Ultimate Ability Deadeye: Off
+			}
+
+			Zenyatta
+			{
+				Spawn With Ultimate Ready: On
+			}
+
+			enabled heroes
+			{
+				McCree
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: L_scan_height
+		1: L_scan_depth
+		2: R_total_hit
+		3: R_total_crit
+		4: SET_MM_MODE
+		5: RAY_CAST_VECTORS
+		6: BOTS_VECTORS
+		7: __FIRST_HERO
+		8: HERO_ARRAY
+		9: CAMERA_HEIGHT
+		10: CAMERA_MODE
+		11: SPHERE_RADIUS
+		12: HERO_NUM
+		13: L_hit_count
+		14: HERO_COUNT
+		15: BOT_POSITION
+		16: CAMERA_VECTORS
+		17: CAMERA_DISTANCE
+		18: CRIT_BOT_POSITION
+		19: crit_depth_min
+		20: crit_depth_max
+		21: crit_height_min
+		22: crit_height_max
+		23: L_total_hit
+		24: L_total_crit
+		25: L_crit_test_outcome
+		26: DELTA_DEPTH_STATIC
+		27: DELTA_HEIGHT_STATIC
+		28: SHOOTER_VECTORS
+		29: R_scan_height
+		30: R_scan_depth
+		31: R_hit_count
+		32: R_crit_test_outcome
+		33: SCAN_HEIGHT_LIMIT
+		34: SCAN_DEPTH_LIMIT
+		35: hud_bot_rotation
+		36: hud_ray_rotation
+		37: hud_camera_rotation
+		38: SCAN_PAUSED
+		39: CAMERA_360_ANGLE
+		40: SCAN_DEPTH_BASE
+		41: SCAN_HEIGHT_BASE
+		42: SCAN_WAIT
+		43: _SERVER_TIMER_L
+		44: _SERVER_TIMER_R
+		45: _TEMP_CAM_START
+		46: _TEMP_CAM_END
+		47: _TEMP_CAM_SIZE
+		48: _TEMP_CAM_CUR
+		49: temp_hitbox_vert
+		50: temp_hitbox_edge
+		51: temp_hitbox_index
+
+	player:
+		0: l_hit_store
+		1: r_hit_store
+}
+
+subroutines
+{
+	0: sub_change_hero
+	1: sub_default_face
+	2: sub_reload_bot
+	3: action_move_forward
+	4: action_b1_routine_junkrat
+	5: action_freeze_9999
+	6: action_move_left
+	7: action_delay_freeze
+	8: action_place_trap
+}
+
+rule("global setup")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		disabled Disable Inspector Recording;
+		Global.__FIRST_HERO = Hero(Junkrat);
+		Global.SCAN_DEPTH_BASE = -46;
+		Global.SCAN_DEPTH_LIMIT = 50;
+		Global.SCAN_HEIGHT_BASE = -11;
+		Global.SCAN_HEIGHT_LIMIT = 89;
+		Global.crit_depth_min = -63;
+		Global.crit_depth_max = 24;
+		Global.crit_height_min = 217;
+		Global.crit_height_max = 305;
+		Global.L_scan_height = Global.SCAN_HEIGHT_BASE;
+		Global.L_scan_depth = Global.SCAN_DEPTH_BASE;
+		Global.R_scan_height = Global.SCAN_HEIGHT_BASE;
+		Global.R_scan_depth = Global.SCAN_DEPTH_BASE;
+		Global.DELTA_DEPTH_STATIC = Vector(0.005, 0, 0);
+		Global.DELTA_HEIGHT_STATIC = Vector(0, 0.005, 0);
+		"classic scan time"
+		disabled Global.SCAN_WAIT = Max(0.016, 0.016 * Round To Integer(8 * (Absolute Value(Global.SCAN_HEIGHT_LIMIT - Global.SCAN_HEIGHT_BASE)
+			/ 100 - 1), Up));
+		"fixed scan time for slow motion"
+		Global.SCAN_WAIT = 0.016;
+		Global.SPHERE_RADIUS = 0.020;
+		Global.CAMERA_DISTANCE = 1.800;
+		Global.hud_bot_rotation = 0;
+		Global.hud_ray_rotation = 0;
+		Global.hud_camera_rotation = 0;
+		Global.HERO_NUM = 0;
+		Global.HERO_COUNT = 31;
+		Global.BOT_POSITION = Vector(0, 0, 0);
+		Global.CRIT_BOT_POSITION = Vector(18, 6, -36);
+		Global.CAMERA_HEIGHT = 1.250 + Y Component Of(Global.BOT_POSITION);
+		Global.HERO_ARRAY = Empty Array;
+		Modify Global Variable(HERO_ARRAY, Append To Array, All Support Heroes);
+		Modify Global Variable(HERO_ARRAY, Append To Array, All Damage Heroes);
+		Modify Global Variable(HERO_ARRAY, Append To Array, All Tank Heroes);
+		Global.CAMERA_VECTORS = Empty Array;
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(0, 0, 1));
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(-0.707, 0, 0.707));
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(0.707, 0, 0.707));
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(-1, 0, 0));
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(1, 0, 0));
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(0, 0, -1));
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(0, 1, -0.001));
+		Global.SHOOTER_VECTORS = Empty Array;
+		Modify Global Variable(SHOOTER_VECTORS, Append To Array, Vector(0, -1.425, 9));
+		Modify Global Variable(SHOOTER_VECTORS, Append To Array, Vector(0, -1.425, -9));
+		Global.RAY_CAST_VECTORS = Empty Array;
+		Modify Global Variable(RAY_CAST_VECTORS, Append To Array, 3.090 * Vector(0, 0, 1));
+		Modify Global Variable(RAY_CAST_VECTORS, Append To Array, 3.090 * Vector(0, 0, -1));
+		Modify Global Variable(RAY_CAST_VECTORS, Append To Array, Global.DELTA_DEPTH_STATIC);
+		Modify Global Variable(RAY_CAST_VECTORS, Append To Array, Global.DELTA_HEIGHT_STATIC);
+		Global.BOTS_VECTORS = Empty Array;
+		Modify Global Variable(BOTS_VECTORS, Append To Array, Vector(0, 0, 1));
+		Modify Global Variable(BOTS_VECTORS, Append To Array, Vector(0, 0, 1));
+		Create Dummy Bot(Global.__FIRST_HERO, Team 2, 0, Global.BOT_POSITION, Vector(0, 0, 0));
+		Global.CAMERA_360_ANGLE = 359;
+	}
+}
+
+rule("temp")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Wait(5, Ignore Condition);
+		Global.temp_hitbox_vert = Array(Vector(0, 0, 0), Vector(612.320, 414.140, 94.380), Vector(612.320, -36.476, 41.189), Vector(
+			612.320, 127.320, 217.852), Vector(612.320, 414.151, -97.960), Vector(612.320, -36.363, -45.366), Vector(612.320, 119.718,
+			-222.834), Vector(333.771, -35.580, -681.048), Vector(333.888, -35.385, -681.004), Vector(371.057, 9.144, -646.929), Vector(
+			319.411, 411.268, -557.130), Vector(286.489, 410.942, -575.749), Vector(-241.583, 405.699, -566.571), Vector(-216.744, -35.677,
+			-670.224), Vector(-270.134, 405.415, -546.356), Vector(-427.482, -35.885, -520.649), Vector(-444.995, 168.154, -468.451),
+			Vector(-638.173, -36.421, -92.163), Vector(-634.205, 153.592, -84.794), Vector(-622.658, 246.220, 5.196), Vector(-528.183,
+			402.822, -1.771), Vector(-599.532, 113.425, 232.805), Vector(-627.228, -36.538, 6.216), Vector(-271.424, 405.340, 546.240),
+			Vector(-399.246, -37.165, 539.233), Vector(-511.176, 106.358, 432.016), Vector(-215.484, -37.316, 670.433), Vector(-242.623,
+			405.625, 566.743), Vector(319.909, 411.211, 557.067), Vector(373.104, 6.381, 647.397), Vector(339.343, -37.311, 679.303),
+			Vector(335.394, -37.314, 681.520), Vector(286.047, 410.874, 576.162));
+		Global.temp_hitbox_edge = Array(Array(1, 3), Array(3, 29), Array(29, 28), Array(4, 6), Array(6, 5), Array(5, 2), Array(2, 3),
+			Array(3, 1), Array(7, 8), Array(8, 9), Array(9, 6), Array(9, 10), Array(10, 11), Array(10, 4), Array(12, 13), Array(13, 15),
+			Array(15, 16), Array(16, 14), Array(13, 12), Array(12, 11), Array(11, 8), Array(8, 7), Array(17, 18), Array(18, 16), Array(16,
+			15), Array(17, 22), Array(22, 21), Array(21, 19), Array(19, 18), Array(20, 19), Array(19, 21), Array(21, 25), Array(25, 23),
+			Array(23, 20), Array(22, 24), Array(24, 25), Array(25, 21), Array(25, 24), Array(24, 26), Array(26, 27), Array(27, 23), Array(
+			27, 26), Array(26, 31), Array(31, 32), Array(30, 31), Array(31, 26), Array(26, 24), Array(24, 22), Array(22, 17), Array(17,
+			15), Array(15, 13), Array(13, 7), Array(7, 5), Array(28, 32), Array(32, 27), Array(20, 14), Array(14, 12), Array(11, 10),
+			Array(4, 1), Array(29, 30), Array(32, 28), Array(30, 2));
+		For Global Variable(temp_hitbox_index, 0, Count Of(Global.temp_hitbox_edge), 1);
+			Create Beam Effect(All Players(All Teams), Grapple Beam,
+				Global.temp_hitbox_vert[Global.temp_hitbox_edge[Global.temp_hitbox_index][0]] / 1000,
+				Global.temp_hitbox_vert[Global.temp_hitbox_edge[Global.temp_hitbox_index][1]] / 1000, White, None);
+		End;
+	}
+}
+
+rule("respawn the bot")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Team Of(Event Player) == Team 2;
+	}
+
+	actions
+	{
+		Wait(1, Ignore Condition);
+		Teleport(Event Player, Global.BOT_POSITION);
+		Start Facing(Event Player, Global.BOTS_VECTORS[0], 10000, To World, Direction and Turn Rate);
+		"for hammond ball form"
+		disabled Press Button(Event Player, Ability 1);
+		"for ultimates"
+		disabled Press Button(Event Player, Ultimate);
+		"for reinhardt shield up"
+		disabled Start Holding Button(Event Player, Secondary Fire);
+		Set Max Health(Event Player, 1000);
+		Start Heal Over Time(Event Player, Event Player, 9999, 10000);
+		disabled Call Subroutine(action_b1_routine_junkrat);
+		Call Subroutine(action_place_trap);
+		"5 below: for slow scan, need disable first hero spawn when server starts"
+		disabled Set Slow Motion(10);
+		disabled Press Button(Event Player, Ultimate);
+		disabled Wait(1.200, Ignore Condition);
+		disabled Communicate(Players In Slot(0, Team 1), Group Up);
+		disabled Press Button(Players In Slot(0, Team 1), Interact);
+	}
+}
+
+rule("respawn myself")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Alive(Event Player) == True;
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Wait(0.016, Ignore Condition);
+		Call Subroutine(sub_default_face);
+	}
+}
+
+rule("clear status on bot death")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Clear Status(Event Player, Frozen);
+		Clear Status(Event Player, Stunned);
+	}
+}
+
+rule("hud setup")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == False;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("position"), Position Of(Event Player)), Null, Null, Left, 0, White,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("facing"), Facing Direction Of(Event Player)), Null, Null, Left, 1,
+			White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("looking"), Ray Cast Hit Position(Eye Position(Event Player),
+			Eye Position(Event Player) + 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True)), String(
+			"{0} {1} {2}", Dot Product(Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player)
+			+ 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True) - Global.BOT_POSITION, Normalize(
+			Global.RAY_CAST_VECTORS[2])) / Distance Between(Vector(0, 0, 0), Vector(0, 0, 0) + Global.DELTA_DEPTH_STATIC), (Y Component Of(
+			Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) + 1000 * Facing Direction Of(Event Player),
+			All Players(All Teams), Event Player, True)) - Y Component Of(Global.BOT_POSITION)) / Distance Between(Vector(0, 0, 0), Vector(
+			0, 0, 0) + Global.DELTA_HEIGHT_STATIC), Ray Cast Hit Player(Eye Position(Event Player), Eye Position(Event Player)
+			+ 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True)), 1000 * Ray Cast Hit Position(
+			Eye Position(Event Player), Eye Position(Event Player) + 1000 * Facing Direction Of(Event Player), All Players(All Teams),
+			Event Player, True), Left, 1, White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("L scan height"), Global.L_scan_height), Null, Null, Left, 2, Yellow,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("L scan depth"), Global.L_scan_depth), Null, Null, Left, 3, Yellow,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("R scan height"), Global.R_scan_height), Null, Null, Left, 4, Aqua,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("R scan depth"), Global.R_scan_depth), Null, Null, Left, 5, Aqua,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("L hit count"), Global.L_hit_count), Null, Null, Left, 11, Yellow,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("L total hit"), Global.L_total_hit), Null, Null, Left, 12, Orange,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("L total crit hit"), Global.L_total_crit), Null, Null, Left, 13, Red,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("R hit count"), Global.R_hit_count), Null, Null, Left, 14, Aqua,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("R total hit"), Global.R_total_hit), Null, Null, Left, 15, Sky Blue,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("R total crit hit"), Global.R_total_crit), Null, Null, Left, 16,
+			Blue, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("crit depth min"), Global.crit_depth_min), Null, Null, Right, 13,
+			White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("crit depth max"), Global.crit_depth_max), Null, Null, Right, 14,
+			White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("crit height min"), Global.crit_height_min), Null, Null, Right, 15,
+			White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("crit height max"), Global.crit_height_max), Null, Null, Right, 16,
+			White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("MM MODE"), Global.SET_MM_MODE), Null, Null, Right, 99, White, White,
+			White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("camera mode"), Global.CAMERA_MODE), Null, Null, Left, 98, White,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("next hero"), Hero Icon String(Global.HERO_ARRAY[(
+			Global.HERO_NUM + 1) % Global.HERO_COUNT])), Null, Null, Left, 999, White, White, White, Visible To and String,
+			Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("DELTA DEPTH (100x)"), 100 * Distance Between(Vector(0, 0, 0),
+			Vector(0, 0, 0) + Global.DELTA_DEPTH_STATIC)), Null, Null, Right, 17, White, White, White, Visible To and String,
+			Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("DELTA HEIGHT (100x)"), 100 * Distance Between(Vector(0, 0, 0),
+			Vector(0, 0, 0) + Global.DELTA_HEIGHT_STATIC)), Null, Null, Right, 18, White, White, White, Visible To and String,
+			Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("SCAN HEIGHT LIMIT"), Global.SCAN_HEIGHT_LIMIT), Null, Null, Right,
+			19, White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("ROTATIONS B-R-C"), String("{0} - {1} - {2}",
+			Global.hud_bot_rotation, Global.hud_ray_rotation, Global.hud_camera_rotation)), Null, Null, Right, 20, White, White, White,
+			Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("PAUSE"), Global.SCAN_PAUSED), Null, Null, Right, 99, Red, White,
+			White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("360 deg"), Global.CAMERA_360_ANGLE), Null, Null, Right, 21, Aqua,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("SCAN DEPTH LIMIT"), Global.SCAN_DEPTH_LIMIT), Null, Null, Right, 19,
+			White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("server load"), Server Load), Null, Null, Right, 100, Green, White,
+			White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("wait (x100)"), Global.SCAN_WAIT * 100), Null, Null, Right, 101,
+			White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("scan f"), Global._SERVER_TIMER_L, Global._SERVER_TIMER_R), Null,
+			Null, Right, 101, Yellow, White, White, Visible To and String, Default Visibility);
+	}
+}
+
+rule("scan both")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Interact) == True;
+	}
+
+	actions
+	{
+		Chase Global Variable At Rate(_SERVER_TIMER_L, 10000, 100, Destination and Rate);
+		For Global Variable(L_scan_depth, Global.SCAN_DEPTH_BASE, Global.SCAN_DEPTH_LIMIT + 1, 1);
+			For Global Variable(L_scan_height, Global.SCAN_HEIGHT_BASE, Global.SCAN_HEIGHT_LIMIT + 1, 1);
+				"if ray hits player"
+				disabled If(Ray Cast Hit Player(
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[0] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[1] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					All Players(All Teams), Event Player, True) != Null);
+				Modify Player Variable(Event Player, l_hit_store, Append To Array, 10000 * Ray Cast Hit Position(
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[0] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[1] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					All Players(All Teams), Event Player, True));
+				disabled Event Player.l_hit_store[Global.L_scan_height] = 0;
+				Global.L_total_hit += 1;
+				"if hit"
+				disabled End;
+				"if ray hits player (R)"
+				disabled If(Ray Cast Hit Player(
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[1] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[0] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					All Players(All Teams), Event Player, True) != Null);
+				Modify Player Variable(Event Player, r_hit_store, Append To Array, 10000 * Ray Cast Hit Position(
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[1] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[0] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					All Players(All Teams), Event Player, True));
+				Global.R_total_hit += 1;
+				"if hit"
+				disabled End;
+			"for height"
+			End;
+			Enable Inspector Recording;
+			Disable Inspector Recording;
+			Event Player.l_hit_store = Empty Array;
+			Event Player.r_hit_store = Empty Array;
+			Wait(Global.SCAN_WAIT, Ignore Condition);
+		"for depth"
+		End;
+		Play Effect(All Players(All Teams), Debuff Impact Sound, White, Event Player, 200);
+		Stop Chasing Global Variable(_SERVER_TIMER_L);
+	}
+}
+
+rule("scan L only")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Communicating(Event Player, Ultimate Status) == True;
+	}
+
+	actions
+	{
+		Chase Global Variable At Rate(_SERVER_TIMER_L, 10000, 100, Destination and Rate);
+		For Global Variable(L_scan_depth, Global.SCAN_DEPTH_BASE, Global.SCAN_DEPTH_LIMIT + 1, 1);
+			For Global Variable(L_scan_height, Global.SCAN_HEIGHT_BASE, Global.SCAN_HEIGHT_LIMIT + 1, 1);
+				"if ray hits player"
+				disabled If(Ray Cast Hit Player(
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[0] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[1] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					All Players(All Teams), Event Player, True) != Null);
+				Modify Player Variable(Event Player, l_hit_store, Append To Array, 10000 * Ray Cast Hit Position(
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[0] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[1] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					All Players(All Teams), Event Player, True));
+				disabled Event Player.l_hit_store[Global.L_scan_height] = 0;
+				Global.L_total_hit += 1;
+				"if hit"
+				disabled End;
+			"for height"
+			End;
+			Enable Inspector Recording;
+			Disable Inspector Recording;
+			Event Player.l_hit_store = Empty Array;
+			Wait(Global.SCAN_WAIT, Ignore Condition);
+		"for depth"
+		End;
+		Play Effect(All Players(All Teams), Debuff Impact Sound, White, Event Player, 200);
+		Stop Chasing Global Variable(_SERVER_TIMER_L);
+	}
+}
+
+rule("scan R only")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Communicating(Event Player, Group Up) == True;
+	}
+
+	actions
+	{
+		Chase Global Variable At Rate(_SERVER_TIMER_R, 10000, 100, Destination and Rate);
+		For Global Variable(L_scan_depth, Global.SCAN_DEPTH_BASE, Global.SCAN_DEPTH_LIMIT + 1, 1);
+			For Global Variable(L_scan_height, Global.SCAN_HEIGHT_BASE, Global.SCAN_HEIGHT_LIMIT + 1, 1);
+				"if ray hits player (R)"
+				disabled If(Ray Cast Hit Player(
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[1] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[0] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					All Players(All Teams), Event Player, True) != Null);
+				Modify Player Variable(Event Player, r_hit_store, Append To Array, 10000 * Ray Cast Hit Position(
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[1] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[0] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+					All Players(All Teams), Event Player, True));
+				Global.R_total_hit += 1;
+				"if hit"
+				disabled End;
+			"for height"
+			End;
+			Enable Inspector Recording;
+			Disable Inspector Recording;
+			Event Player.r_hit_store = Empty Array;
+			Wait(Global.SCAN_WAIT, Ignore Condition);
+		"for depth"
+		End;
+		Play Effect(All Players(All Teams), Debuff Impact Sound, White, Event Player, 200);
+		Stop Chasing Global Variable(_SERVER_TIMER_R);
+	}
+}
+
+disabled rule("L crit bot outcome")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Slot Of(Event Player) == 1;
+		Event Was Critical Hit == True;
+	}
+
+	actions
+	{
+		Global.L_crit_test_outcome = 1;
+	}
+}
+
+disabled rule("scan R")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		(Is Button Held(Event Player, Interact) || Is Communicating(Event Player, Group Up)) == True;
+	}
+
+	actions
+	{
+		Chase Global Variable At Rate(_SERVER_TIMER_R, 10000, 100, Destination and Rate);
+		For Global Variable(R_scan_depth, Global.SCAN_DEPTH_BASE, Global.SCAN_DEPTH_LIMIT + 1, 1);
+			For Global Variable(R_scan_height, Global.SCAN_HEIGHT_BASE, Global.SCAN_HEIGHT_LIMIT + 1, 1);
+				"if ray hits player"
+				If(Ray Cast Hit Player(
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[1] + Global.DELTA_HEIGHT_STATIC * Global.R_scan_height + Global.RAY_CAST_VECTORS[2] * Global.R_scan_depth,
+					Global.BOT_POSITION + Global.RAY_CAST_VECTORS[0] + Global.DELTA_HEIGHT_STATIC * Global.R_scan_height + Global.RAY_CAST_VECTORS[2] * Global.R_scan_depth,
+					All Players(All Teams), Event Player, True) != Null);
+					Event Player.r_hit_store[Global.R_scan_height] = 10000 * Ray Cast Hit Position(
+						Global.BOT_POSITION + Global.RAY_CAST_VECTORS[1] + Global.DELTA_HEIGHT_STATIC * Global.R_scan_height + Global.RAY_CAST_VECTORS[2] * Global.R_scan_depth,
+						Global.BOT_POSITION + Global.RAY_CAST_VECTORS[0] + Global.DELTA_HEIGHT_STATIC * Global.R_scan_height + Global.RAY_CAST_VECTORS[2] * Global.R_scan_depth,
+						All Players(All Teams), Event Player, True);
+					disabled Event Player.r_hit_store = 1000 * Ray Cast Hit Position(
+						Global.BOT_POSITION + Global.RAY_CAST_VECTORS[1] + Global.DELTA_HEIGHT_STATIC * Global.R_scan_height + Global.RAY_CAST_VECTORS[2] * Global.R_scan_depth,
+						Global.BOT_POSITION + Global.RAY_CAST_VECTORS[0] + Global.DELTA_HEIGHT_STATIC * Global.R_scan_height + Global.RAY_CAST_VECTORS[2] * Global.R_scan_depth,
+						All Players(All Teams), Event Player, True);
+					Global.R_total_hit += 1;
+				"if hit"
+				End;
+			"for height"
+			End;
+			Enable Inspector Recording;
+			Disable Inspector Recording;
+			Event Player.r_hit_store = Empty Array;
+			Wait(Global.SCAN_WAIT, Ignore Condition);
+		"for depth"
+		End;
+		Play Effect(All Players(All Teams), Debuff Impact Sound, White, Event Player, 200);
+		Stop Chasing Global Variable(_SERVER_TIMER_R);
+	}
+}
+
+disabled rule("R crit bot outcome")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Slot Of(Event Player) == 2;
+		Event Was Critical Hit == True;
+	}
+
+	actions
+	{
+		Global.R_crit_test_outcome = 1;
+	}
+}
+
+rule("reset ALL")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Communicating(Event Player, Voice Line Up) == True;
+	}
+
+	actions
+	{
+		Global.L_scan_depth = 0;
+		Global.L_scan_height = 0;
+		Global.R_scan_depth = 0;
+		Global.R_scan_height = 0;
+		Global.L_total_hit = 0;
+		Global.L_total_crit = 0;
+		Global.R_total_hit = 0;
+		Global.R_total_crit = 0;
+		Global.crit_depth_min = 1000;
+		Global.crit_depth_max = -1000;
+		Global.crit_height_min = 1000;
+		Global.crit_height_max = -1000;
+		Global.L_hit_count = 0;
+		Global.R_hit_count = 0;
+		Global.SCAN_HEIGHT_LIMIT = -1000;
+	}
+}
+
+disabled rule("set camera position 1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Secondary Fire) == True;
+		Global.CAMERA_MODE < 8;
+	}
+
+	actions
+	{
+		Skip If(Global.CAMERA_MODE != 0, 2);
+		Set Invisible(All Players(All Teams), All);
+		Start Camera(Event Player, Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(Global.BOT_POSITION))
+			+ Global.CAMERA_VECTORS[0], Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(
+			Global.BOT_POSITION)), 0);
+		Skip If(Global.CAMERA_MODE != 1, 1);
+		Set Invisible(Players In Slot(0, Team 2), None);
+		Skip If(Global.CAMERA_MODE != 2, 2);
+		Set Invisible(All Players(All Teams), All);
+		Start Camera(Event Player, Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(Global.BOT_POSITION))
+			+ Global.CAMERA_VECTORS[5], Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(
+			Global.BOT_POSITION)), 0);
+		Skip If(Global.CAMERA_MODE != 3, 1);
+		Set Invisible(Players In Slot(0, Team 2), None);
+		Skip If(Global.CAMERA_MODE != 4, 2);
+		Set Invisible(All Players(All Teams), All);
+		Start Camera(Event Player, Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(Global.BOT_POSITION))
+			+ Global.CAMERA_VECTORS[1], Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(
+			Global.BOT_POSITION)), 0);
+		Skip If(Global.CAMERA_MODE != 5, 1);
+		Set Invisible(Players In Slot(0, Team 2), None);
+		Skip If(Global.CAMERA_MODE != 6, 2);
+		Set Invisible(All Players(All Teams), All);
+		Start Camera(Event Player, Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(Global.BOT_POSITION))
+			+ Global.CAMERA_VECTORS[2], Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(
+			Global.BOT_POSITION)), 0);
+		Skip If(Global.CAMERA_MODE != 7, 1);
+		Set Invisible(Players In Slot(0, Team 2), None);
+		Wait(0.200, Ignore Condition);
+		Global.CAMERA_MODE = (Global.CAMERA_MODE + 1) % 15;
+	}
+}
+
+disabled rule("set camera position 2")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Secondary Fire) == True;
+		Global.CAMERA_MODE >= 8;
+	}
+
+	actions
+	{
+		Skip If(Global.CAMERA_MODE != 8, 2);
+		Set Invisible(All Players(All Teams), All);
+		Start Camera(Event Player, Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(Global.BOT_POSITION))
+			+ Global.CAMERA_VECTORS[3], Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(
+			Global.BOT_POSITION)), 0);
+		Skip If(Global.CAMERA_MODE != 9, 1);
+		Set Invisible(Players In Slot(0, Team 2), None);
+		Skip If(Global.CAMERA_MODE != 10, 2);
+		Set Invisible(All Players(All Teams), All);
+		Start Camera(Event Player, Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(Global.BOT_POSITION))
+			+ Global.CAMERA_VECTORS[4], Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(
+			Global.BOT_POSITION)), 0);
+		Skip If(Global.CAMERA_MODE != 11, 1);
+		Set Invisible(Players In Slot(0, Team 2), None);
+		Skip If(Global.CAMERA_MODE != 12, 2);
+		Set Invisible(All Players(All Teams), All);
+		Start Camera(Event Player, Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(Global.BOT_POSITION))
+			+ Global.CAMERA_VECTORS[6], Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(
+			Global.BOT_POSITION)), 0);
+		Skip If(Global.CAMERA_MODE != 13, 1);
+		Set Invisible(Players In Slot(0, Team 2), None);
+		Skip If(Global.CAMERA_MODE != 14, 1);
+		Stop Camera(Event Player);
+		Wait(0.200, Ignore Condition);
+		Global.CAMERA_MODE = (Global.CAMERA_MODE + 1) % 15;
+	}
+}
+
+rule("kill bot")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Communicating(Event Player, Voice Line Down) == True;
+	}
+
+	actions
+	{
+		Kill(All Players(Team 2), Event Player);
+	}
+}
+
+disabled rule("decrement depth")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Crouch) == True;
+	}
+
+	actions
+	{
+		Global.L_scan_depth -= 1;
+		Global.L_scan_height = 0;
+		Global.R_scan_depth -= 1;
+		Global.R_scan_height = 0;
+		Destroy All Effects;
+		Global.L_hit_count = 0;
+		Global.R_hit_count = 0;
+	}
+}
+
+disabled rule("increment depth")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Ability 1) == True;
+	}
+
+	actions
+	{
+		Global.L_scan_depth += 1;
+		Global.L_scan_height = 0;
+		Global.R_scan_depth += 1;
+		Global.R_scan_height = 0;
+		Destroy All Effects;
+		Global.L_hit_count = 0;
+		Global.R_hit_count = 0;
+	}
+}
+
+rule("rotate camera vectors only")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Communicating(Event Player, Thanks) == True;
+	}
+
+	actions
+	{
+		Global.CAMERA_VECTORS[0] = Vector(Z Component Of(Global.CAMERA_VECTORS[0]), Y Component Of(Global.CAMERA_VECTORS[0]),
+			-1 * X Component Of(Global.CAMERA_VECTORS[0]));
+		Global.CAMERA_VECTORS[1] = Vector(Z Component Of(Global.CAMERA_VECTORS[1]), Y Component Of(Global.CAMERA_VECTORS[1]),
+			-1 * X Component Of(Global.CAMERA_VECTORS[1]));
+		Global.CAMERA_VECTORS[2] = Vector(Z Component Of(Global.CAMERA_VECTORS[2]), Y Component Of(Global.CAMERA_VECTORS[2]),
+			-1 * X Component Of(Global.CAMERA_VECTORS[2]));
+		Global.CAMERA_VECTORS[3] = Vector(Z Component Of(Global.CAMERA_VECTORS[3]), Y Component Of(Global.CAMERA_VECTORS[3]),
+			-1 * X Component Of(Global.CAMERA_VECTORS[3]));
+		Global.CAMERA_VECTORS[4] = Vector(Z Component Of(Global.CAMERA_VECTORS[4]), Y Component Of(Global.CAMERA_VECTORS[4]),
+			-1 * X Component Of(Global.CAMERA_VECTORS[4]));
+		Global.CAMERA_VECTORS[5] = Vector(Z Component Of(Global.CAMERA_VECTORS[5]), Y Component Of(Global.CAMERA_VECTORS[5]),
+			-1 * X Component Of(Global.CAMERA_VECTORS[5]));
+		Global.CAMERA_VECTORS[6] = Vector(Z Component Of(Global.CAMERA_VECTORS[6]), Y Component Of(Global.CAMERA_VECTORS[6]),
+			-1 * X Component Of(Global.CAMERA_VECTORS[6]));
+		Global.hud_camera_rotation = (Global.hud_camera_rotation + 1) % 4;
+	}
+}
+
+disabled rule("rotate bots only")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Communicating(Event Player, Voice Line Left) == True;
+	}
+
+	actions
+	{
+		Global.BOTS_VECTORS[0] = Vector(Z Component Of(Global.BOTS_VECTORS[0]), Y Component Of(Global.BOTS_VECTORS[0]),
+			-1 * X Component Of(Global.BOTS_VECTORS[0]));
+		Global.BOTS_VECTORS[1] = Vector(Z Component Of(Global.BOTS_VECTORS[1]), Y Component Of(Global.BOTS_VECTORS[1]),
+			-1 * X Component Of(Global.BOTS_VECTORS[1]));
+		Global.hud_bot_rotation = (Global.hud_bot_rotation + 1) % 4;
+	}
+}
+
+rule("rotate ray casts")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Communicating(Event Player, Voice Line Right) == True;
+	}
+
+	actions
+	{
+		Global.RAY_CAST_VECTORS[0] = Vector(Z Component Of(Global.RAY_CAST_VECTORS[0]), Y Component Of(Global.RAY_CAST_VECTORS[0]),
+			-1 * X Component Of(Global.RAY_CAST_VECTORS[0]));
+		Global.RAY_CAST_VECTORS[1] = Vector(Z Component Of(Global.RAY_CAST_VECTORS[1]), Y Component Of(Global.RAY_CAST_VECTORS[1]),
+			-1 * X Component Of(Global.RAY_CAST_VECTORS[1]));
+		Global.RAY_CAST_VECTORS[2] = Vector(Z Component Of(Global.RAY_CAST_VECTORS[2]), Y Component Of(Global.RAY_CAST_VECTORS[2]),
+			-1 * X Component Of(Global.RAY_CAST_VECTORS[2]));
+		Global.RAY_CAST_VECTORS[3] = Vector(Z Component Of(Global.RAY_CAST_VECTORS[3]), Y Component Of(Global.RAY_CAST_VECTORS[3]),
+			-1 * X Component Of(Global.RAY_CAST_VECTORS[2]));
+		Global.BOTS_VECTORS[1] = Vector(-1 * Z Component Of(Global.BOTS_VECTORS[1]), Y Component Of(Global.BOTS_VECTORS[1]),
+			X Component Of(Global.BOTS_VECTORS[1]));
+		Global.hud_ray_rotation = (Global.hud_ray_rotation + 1) % 4;
+	}
+}
+
+rule("rotate ray casts (vertically)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Communicating(Event Player, Voice Line Left) == True;
+	}
+
+	actions
+	{
+		Global.RAY_CAST_VECTORS[0] = Vector(X Component Of(Global.RAY_CAST_VECTORS[0]), -1 * Z Component Of(Global.RAY_CAST_VECTORS[0]),
+			1 * Y Component Of(Global.RAY_CAST_VECTORS[0]));
+		Global.RAY_CAST_VECTORS[1] = Vector(X Component Of(Global.RAY_CAST_VECTORS[1]), -1 * Z Component Of(Global.RAY_CAST_VECTORS[1]),
+			1 * Y Component Of(Global.RAY_CAST_VECTORS[1]));
+		Global.RAY_CAST_VECTORS[2] = Vector(X Component Of(Global.RAY_CAST_VECTORS[2]), -1 * Z Component Of(Global.RAY_CAST_VECTORS[2]),
+			1 * Y Component Of(Global.RAY_CAST_VECTORS[2]));
+		Global.RAY_CAST_VECTORS[3] = Vector(X Component Of(Global.RAY_CAST_VECTORS[3]), -1 * Z Component Of(Global.RAY_CAST_VECTORS[3]),
+			1 * Y Component Of(Global.RAY_CAST_VECTORS[3]));
+		Global.hud_bot_rotation = (Global.hud_bot_rotation + 1) % 4;
+	}
+}
+
+disabled rule("change bot hero")
+{
+	event
+	{
+		Subroutine;
+		sub_change_hero;
+	}
+
+	actions
+	{
+		Destroy Dummy Bot(Team 2, 0);
+		disabled Destroy Dummy Bot(Team 2, 1);
+		disabled Destroy Dummy Bot(Team 2, 2);
+		Wait(1, Ignore Condition);
+		Create Dummy Bot(Global.HERO_ARRAY[(Global.HERO_NUM + 1) % Global.HERO_COUNT], Team 2, 0, Global.BOT_POSITION, Vector(0, 0, 0));
+		disabled Create Dummy Bot(Global.HERO_ARRAY[(Global.HERO_NUM + 1) % Global.HERO_COUNT], Team 2, 1, Global.BOT_POSITION, Vector(0, 0, 0));
+		disabled Create Dummy Bot(Global.HERO_ARRAY[(Global.HERO_NUM + 1) % Global.HERO_COUNT], Team 2, 2, Global.CRIT_BOT_POSITION, Vector(0, 0,
+			0));
+		Global.HERO_NUM = (Global.HERO_NUM + 1) % Global.HERO_COUNT;
+		Wait(1, Ignore Condition);
+		disabled Set Status(Players In Slot(0, Team 2), Null, Phased Out, 9999);
+	}
+}
+
+rule("set min max mode")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Hello) == True;
+		Is Dummy Bot(Event Player) != True;
+		Host Player == True;
+	}
+
+	actions
+	{
+		Global.SET_MM_MODE = (Global.SET_MM_MODE + 1) % 6;
+	}
+}
+
+rule("hurt a bot under mm")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Host Player == True;
+		Global.SET_MM_MODE > 0;
+		Event Was Critical Hit == True;
+	}
+
+	actions
+	{
+		Skip If(Global.SET_MM_MODE != 2, 2);
+		Skip If(Round To Integer(Dot Product(Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player)
+			+ 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True) - Global.BOT_POSITION, Normalize(
+			Global.RAY_CAST_VECTORS[2])) / Distance Between(Vector(0, 0, 0), Vector(0, 0, 0) + Global.DELTA_DEPTH_STATIC) + -4, Down)
+			>= Global.crit_depth_min, 1);
+		Global.crit_depth_min = Round To Integer(Dot Product(Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player)
+			+ 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True) - Global.BOT_POSITION, Normalize(
+			Global.RAY_CAST_VECTORS[2])) / Distance Between(Vector(0, 0, 0), Vector(0, 0, 0) + Global.DELTA_DEPTH_STATIC) + -4, Down);
+		Skip If(Global.SET_MM_MODE != 3, 2);
+		Skip If(Round To Integer(Dot Product(Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player)
+			+ 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True) - Global.BOT_POSITION, Normalize(
+			Global.RAY_CAST_VECTORS[2])) / Distance Between(Vector(0, 0, 0), Vector(0, 0, 0) + Global.DELTA_DEPTH_STATIC) + 4, Up)
+			<= Global.crit_depth_max, 1);
+		Global.crit_depth_max = Round To Integer(Dot Product(Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player)
+			+ 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True) - Global.BOT_POSITION, Normalize(
+			Global.RAY_CAST_VECTORS[2])) / Distance Between(Vector(0, 0, 0), Vector(0, 0, 0) + Global.DELTA_DEPTH_STATIC) + 4, Up);
+		Skip If(Global.SET_MM_MODE != 4, 2);
+		Skip If(Round To Integer((Y Component Of(Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player)
+			+ 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True)) - Y Component Of(Global.BOT_POSITION))
+			/ Distance Between(Vector(0, 0, 0), Vector(0, 0, 0) + Global.DELTA_HEIGHT_STATIC) + -4, Down) >= Global.crit_height_min, 1);
+		Global.crit_height_min = Round To Integer((Y Component Of(Ray Cast Hit Position(Eye Position(Event Player), Eye Position(
+			Event Player) + 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True)) - Y Component Of(
+			Global.BOT_POSITION)) / Distance Between(Vector(0, 0, 0), Vector(0, 0, 0) + Global.DELTA_HEIGHT_STATIC) + -4, Down);
+		Skip If(Global.SET_MM_MODE != 5, 2);
+		Skip If(Round To Integer((Y Component Of(Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player)
+			+ 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True)) - Y Component Of(Global.BOT_POSITION))
+			/ Distance Between(Vector(0, 0, 0), Vector(0, 0, 0) + Global.DELTA_HEIGHT_STATIC) + 4, Up) <= Global.crit_height_max, 1);
+		Global.crit_height_max = Round To Integer((Y Component Of(Ray Cast Hit Position(Eye Position(Event Player), Eye Position(
+			Event Player) + 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True)) - Y Component Of(
+			Global.BOT_POSITION)) / Distance Between(Vector(0, 0, 0), Vector(0, 0, 0) + Global.DELTA_HEIGHT_STATIC) + 4, Up);
+	}
+}
+
+rule("hurt bot under mm 5")
+{
+	event
+	{
+		Player Dealt Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Host Player == True;
+		Global.SET_MM_MODE > 0;
+	}
+
+	actions
+	{
+		Skip If(Global.SET_MM_MODE != 1, 2);
+		Skip If(Round To Integer((Y Component Of(Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player)
+			+ 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True)) - Y Component Of(Global.BOT_POSITION))
+			/ Distance Between(Vector(0, 0, 0), Vector(0, 0, 0) + Global.DELTA_HEIGHT_STATIC) + 6, Up) <= Global.SCAN_HEIGHT_LIMIT, 1);
+		Global.SCAN_HEIGHT_LIMIT = Round To Integer((Y Component Of(Ray Cast Hit Position(Eye Position(Event Player), Eye Position(
+			Event Player) + 1000 * Facing Direction Of(Event Player), All Players(All Teams), Event Player, True)) - Y Component Of(
+			Global.BOT_POSITION)) / Distance Between(Vector(0, 0, 0), Vector(0, 0, 0) + Global.DELTA_HEIGHT_STATIC) + 6, Up);
+	}
+}
+
+disabled rule("reset total count only (acknowledge)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Communicating(Event Player, Acknowledge) == True;
+	}
+
+	actions
+	{
+		Global.L_total_hit = 0;
+		Global.L_total_crit = 0;
+		Global.R_total_hit = 0;
+		Global.R_total_crit = 0;
+	}
+}
+
+rule("reset camera")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Ultimate) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Stop Camera(Event Player);
+		Global.CAMERA_MODE = 0;
+		Set Invisible(Players In Slot(0, Team 2), None);
+	}
+}
+
+disabled rule("pause scan")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Communicating(Event Player, Need Healing) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Global.SCAN_PAUSED = 1;
+		Wait(2, Ignore Condition);
+		Global.SCAN_PAUSED = 0;
+	}
+}
+
+rule("360 camera")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Secondary Fire) == True;
+	}
+
+	actions
+	{
+		Set Invisible(All Players(All Teams), All);
+		disabled Set Invisible(Players In Slot(0, Team 2), None);
+		"default"
+		disabled Start Camera(Event Player, Vector(X Component Of(Global.CAMERA_VECTORS[0]) * Cosine From Degrees(Global.CAMERA_360_ANGLE)
+			- Z Component Of(Global.CAMERA_VECTORS[0]) * Sine From Degrees(Global.CAMERA_360_ANGLE), 0, X Component Of(
+			Global.CAMERA_VECTORS[0]) * Sine From Degrees(Global.CAMERA_360_ANGLE) + Z Component Of(Global.CAMERA_VECTORS[0])
+			* Cosine From Degrees(Global.CAMERA_360_ANGLE)) + Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT,
+			Z Component Of(Global.BOT_POSITION)), Vector(X Component Of(Global.BOT_POSITION), Global.CAMERA_HEIGHT, Z Component Of(
+			Global.BOT_POSITION)), 0);
+		"junk trap"
+		Start Camera(Event Player, Vector(X Component Of(Global.CAMERA_VECTORS[0]) * Cosine From Degrees(Global.CAMERA_360_ANGLE)
+			- Z Component Of(Global.CAMERA_VECTORS[0]) * Sine From Degrees(Global.CAMERA_360_ANGLE), 0, X Component Of(
+			Global.CAMERA_VECTORS[0]) * Sine From Degrees(Global.CAMERA_360_ANGLE) + Z Component Of(Global.CAMERA_VECTORS[0])
+			* Cosine From Degrees(Global.CAMERA_360_ANGLE)) + Vector(X Component Of(Global.BOT_POSITION), 0.800, Z Component Of(
+			Global.BOT_POSITION)), Vector(X Component Of(Global.BOT_POSITION), 0, Z Component Of(Global.BOT_POSITION)), 0);
+		Global.CAMERA_360_ANGLE = (Global.CAMERA_360_ANGLE + 1) % 360;
+		disabled If(Global.CAMERA_360_ANGLE == 359);
+		disabled Wait(3, Ignore Condition);
+		disabled Destroy Dummy Bot(Team 2, 0);
+		disabled Wait(1, Ignore Condition);
+		disabled Create Dummy Bot(Global.HERO_ARRAY[(Global.HERO_NUM + 1) % Global.HERO_COUNT], Team 2, 0, Global.BOT_POSITION, Vector(0, 0, 0));
+		disabled Global.HERO_NUM = (Global.HERO_NUM + 1) % Global.HERO_COUNT;
+		disabled End;
+		"2 below for changing hero"
+		disabled Wait(1, Ignore Condition);
+		disabled Call Subroutine(sub_reload_bot);
+	}
+}
+
+rule("sound")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Interact) == True;
+	}
+
+	actions
+	{
+		Play Effect(All Players(All Teams), Buff Impact Sound, White, Event Player, 200);
+	}
+}
+
+rule("[SUB] self default spawn pos")
+{
+	event
+	{
+		Subroutine;
+		sub_default_face;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Vector(0.197, 1.423, 1.501));
+		Start Facing(Event Player, Vector(0, 0, -1), 10000, To World, Direction and Turn Rate);
+		Wait(5, Ignore Condition);
+		Stop Facing(Event Player);
+	}
+}
+
+rule("reset self spawn pos (pree melee)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Melee) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(sub_default_face);
+	}
+}
+
+rule("[SUB] reload bot (keep same hero)")
+{
+	event
+	{
+		Subroutine;
+		sub_reload_bot;
+	}
+
+	actions
+	{
+		Set Slow Motion(100);
+		Destroy All Dummy Bots;
+		Wait(0.016, Ignore Condition);
+		Create Dummy Bot(Global.__FIRST_HERO, Team 2, 0, Global.BOT_POSITION, Vector(0, 0, 0));
+	}
+}
+
+rule("reload bot (manaul, press reload)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Is Button Held(Event Player, Reload) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(sub_reload_bot);
+		"for slow mode"
+		disabled Set Slow Motion(100);
+	}
+}
+
+disabled rule("manual freeze")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Need Healing) == True;
+	}
+
+	actions
+	{
+		Set Status(Players In Slot(0, Team 2), Null, Stunned, 3);
+		Set Status(Players In Slot(0, Team 2), Null, Frozen, 3);
+	}
+}
+
+rule("[action] move forward")
+{
+	event
+	{
+		Subroutine;
+		action_move_forward;
+	}
+
+	actions
+	{
+		Start Throttle In Direction(Event Player, Vector(0, 0, 1), 1, To Player, Replace existing throttle, None);
+		Wait(1.500, Ignore Condition);
+		Call Subroutine(action_freeze_9999);
+		Wait(1, Ignore Condition);
+		Set Slow Motion(10);
+		Teleport(Event Player, Global.BOT_POSITION);
+	}
+}
+
+rule("[action] classic routine junkrat")
+{
+	event
+	{
+		Subroutine;
+		action_b1_routine_junkrat;
+	}
+
+	actions
+	{
+		Wait(1, Ignore Condition);
+		Set Status(Event Player, Null, Stunned, 6.300);
+		Wait(6.400, Ignore Condition);
+		Set Status(Event Player, Null, Stunned, 9999);
+		Set Status(Event Player, Null, Frozen, 9999);
+		Set Slow Motion(10);
+	}
+}
+
+rule("[action] freeze only")
+{
+	event
+	{
+		Subroutine;
+		action_freeze_9999;
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Frozen, 9999);
+	}
+}
+
+rule("[action] move left (strafe)")
+{
+	event
+	{
+		Subroutine;
+		action_move_left;
+	}
+
+	actions
+	{
+		Start Throttle In Direction(Event Player, Vector(1, 0, 0), 1, To Player, Replace existing throttle, None);
+		Wait(1.500, Ignore Condition);
+		Call Subroutine(action_freeze_9999);
+		Wait(1, Ignore Condition);
+		Set Slow Motion(10);
+		Teleport(Event Player, Global.BOT_POSITION);
+	}
+}
+
+rule("return 100%")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Acknowledge) == True;
+	}
+
+	actions
+	{
+		Set Slow Motion(100);
+	}
+}
+
+disabled rule("temp camera array")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global._TEMP_CAM_SIZE = 8;
+		Global._TEMP_CAM_START = Empty Array;
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(-0.190, 1.850, 1));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(-0.190, 1.850, -1.400));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(-1.300, 1.850, 0.170));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(1.300, 1.850, 0.170));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(0, 1.880, 0.600));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(0, 1.880, -0.600));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(0.600, 1.880, 0));
+		Modify Global Variable(_TEMP_CAM_START, Append To Array, Vector(-0.600, 1.880, 0));
+		Global._TEMP_CAM_END = Empty Array;
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(-0.190, 1.850, 0.170));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(-0.190, 1.850, 0.170));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(-0.190, 1.850, 0.170));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(-0.190, 1.850, 0.170));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(0, 1.880, 0));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(0, 1.880, 0));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(0, 1.880, 0));
+		Modify Global Variable(_TEMP_CAM_END, Append To Array, Vector(0, 1.880, 0));
+	}
+}
+
+disabled rule("temp camera action")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Secondary Fire) == True;
+	}
+
+	actions
+	{
+		Set Invisible(All Players(All Teams), All);
+		Set Invisible(Players In Slot(0, Team 2), None);
+		Start Camera(Event Player, Global._TEMP_CAM_START[Global._TEMP_CAM_CUR], Global._TEMP_CAM_END[Global._TEMP_CAM_CUR], 0);
+		Global._TEMP_CAM_CUR = (Global._TEMP_CAM_CUR + 1) % Global._TEMP_CAM_SIZE;
+	}
+}
+
+rule("[action] freeze delay")
+{
+	event
+	{
+		Subroutine;
+		action_delay_freeze;
+	}
+
+	actions
+	{
+		Wait(1, Ignore Condition);
+		Set Status(Event Player, Null, Frozen, 9999);
+		Set Slow Motion(10);
+	}
+}
+
+rule("[action] place trap")
+{
+	event
+	{
+		Subroutine;
+		action_place_trap;
+	}
+
+	actions
+	{
+		Stop Facing(Event Player);
+		Start Facing(Event Player, Down, 10000, To World, Direction and Turn Rate);
+		Wait(1, Ignore Condition);
+		Press Button(Event Player, Ability 2);
+		Wait(1, Ignore Condition);
+		Teleport(Event Player, Vector(18, 0, 18));
+		disabled Set Slow Motion(10);
+	}
+}
