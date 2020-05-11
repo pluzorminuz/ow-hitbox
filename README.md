@@ -2,6 +2,18 @@
 
 Contains the Workshop scripts I used for the Hitbox project. As well as the place where everything will be kept up-to-date, instead of updating the Reddit post every time.
 
+# Color Coding
+
+Each colour represent something different:
+
+* Green: Normal, body hitbox. Fitted
+* Red: Critical Hitbox. Fitted
+* Blue: Hitbox intersection (with ground) indicator
+* Cyan: Manually placed hitbox.
+* Yellow: Newly added hitbox
+* Teal: Shields (e.g. Brig shield)
+* Orange: Cannot be shot at at that particular angle (e.g. in Genji's Deflect)
+
 # 1.48 PTR changes (Echo and Reinhardt)
 
 [![Play](https://img.youtube.com/vi/JEdYlv4zo2o/maxresdefault.jpg)](https://youtu.be/JEdYlv4zo2o)
@@ -113,8 +125,6 @@ We can also calculate the size of the hitboxes for comparison. Here I used vario
 
 If you want the raw numbers, it’s included in [the spreadsheet](https://docs.google.com/spreadsheets/d/19t4ftrkYY3IfmQ2YlylAha0VbOfDjiJ4InIKyjwlX70/edit?usp=sharing).
 
-If you want the raw data, [it's here as well](https://drive.google.com/file/d/1mOzWT3Dlp9ty1Vp7vBkOM-RE8sfQTOic/view?usp=sharing)
-
 ## Trivia:
 
 * Total amount of data point extracted: 7279051
@@ -135,8 +145,6 @@ If you want the raw data, [it's here as well](https://drive.google.com/file/d/1m
 [Click here for the Workshop script I used](https://drive.google.com/file/d/1bWv0hWLdb3MbApAp6m0bdPu5kYHsFwGl/view?usp=sharing)
 
 Or just use the code **GBFGK** (for 1.46)
-
-~~Yes the raw data will be available soon.~~ 
 
 # Documentation
 
@@ -190,3 +198,9 @@ Therefore after one scan, you should only see the following types of lines
 ## Notes
 
 1. If you have many data (>30000 in total), the game will freeze after copy. This is completely normal, the copy is processing in the background. The script is only designed to do 1 scan per session, so expect to get kicked by the server after copying the data.
+
+## Update Log
+
+|Date||
+|:--|:--|
+|200512|* Added color code explanation|
