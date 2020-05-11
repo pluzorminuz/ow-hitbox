@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "The Genji must spawn in the 1st slot in Team 1. Press Acknowledge to kill yourself. Press Interact to place the bot at your position and direction (if bot exist). Made by pluzorminuz, Reddit: u/spadler097"
+		Description: "The server can only display 1 instance of the hitbox, therefore the Genji (who displays the hitbox) must spawn in the 1st slot in Team 1. Press Acknowledge to kill yourself. Press Interact to place the bot at your position and direction (if bot exist). Made by pluzorminuz, Reddit: u/spadler097"
 	}
 
 	modes
@@ -120,7 +120,8 @@ rule("player settings")
 		Wait(1, Ignore Condition);
 		Call Subroutine(display2);
 		disabled Set Damage Dealt(Event Player, 0.010);
-		Start Camera(Event Player, Eye Position(Event Player) - 2 * Facing Direction Of(Event Player), Eye Position(Event Player), 0);
+		Start Camera(Event Player, Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) - 4 * Facing Direction Of(
+			Event Player), Null, Event Player, False), Eye Position(Event Player), 50);
 	}
 }
 
@@ -839,7 +840,7 @@ disabled rule("spawn bot")
 		Set Max Health(Players In Slot(0, Team 1), 1000);
 		Wait(2, Ignore Condition);
 		Start Heal Over Time(Players In Slot(0, Team 1), Players In Slot(0, Team 1), 9999, 100);
-		Set Facing(Players In Slot(0, Team 1), Direction From Angles(Horizontal Facing Angle Of(Players In Slot(0, Team 1)), -30),
+		Set Facing(Players In Slot(0, Team 1), Direction From Angles(Horizontal Facing Angle Of(Players In Slot(0, Team 1)), -0.010),
 			To World);
 	}
 }
