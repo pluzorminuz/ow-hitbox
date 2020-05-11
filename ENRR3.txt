@@ -818,7 +818,7 @@ rule("kill button (acknowledge)")
 	}
 }
 
-rule("Enable the following four rules if you need a bot, remember to leave Team 1 first slot fot the Bot to spawn :)")
+rule("Enable the following 4 rules if you need a bot, remember to leave Team 1 first slot for the Bot to spawn :)")
 {
 	event
 	{
@@ -836,6 +836,11 @@ disabled rule("spawn bot")
 	actions
 	{
 		Create Dummy Bot(Hero(Genji), Team 1, 0, Vector(0, 0, 0), Vector(0, 0, 0));
+		Set Max Health(Players In Slot(0, Team 1), 1000);
+		Wait(2, Ignore Condition);
+		Start Heal Over Time(Players In Slot(0, Team 1), Players In Slot(0, Team 1), 9999, 100);
+		Set Facing(Players In Slot(0, Team 1), Direction From Angles(Horizontal Facing Angle Of(Players In Slot(0, Team 1)), -30),
+			To World);
 	}
 }
 
@@ -855,6 +860,7 @@ disabled rule("bot genji deflect initial (makes bot keep deflecting)")
 		Slot Of(Event Player) == 0;
 		Is Alive(Event Player) == True;
 		Hero Of(Event Player) == Hero(Genji);
+		Is Using Ability 2(Event Player) != True;
 	}
 
 	actions
