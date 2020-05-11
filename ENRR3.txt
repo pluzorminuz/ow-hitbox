@@ -792,6 +792,9 @@ rule("hud display")
 		Create HUD Text(Event Player, String("{0}: {1}", Custom String("Dot"), Dot Product(Facing Direction Of(Event Player),
 			Facing Direction Of(Players In Slot(0, Team 1)))), Null, Null, Left, 0, White, White, White, Visible To and String,
 			Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("Deflect"), Dot Product(Facing Direction Of(Event Player),
+			Facing Direction Of(Players In Slot(0, Team 1))) <= 0), Null, Null, Left, 1, White, White, White, Visible To and String,
+			Default Visibility);
 	}
 }
 
