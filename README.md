@@ -6,16 +6,17 @@ Contains the Workshop scripts I used for the Hitbox project. As well as the plac
 
 Each colour represent something different:
 
-* Green: Normal, body hitbox. Fitted
-* Red: Critical Hitbox. Fitted
+* Green: Normal, body hitbox, fitted
+* Red: Critical hitbox, fitted (unless combined with Cyan)
 * Blue: Hitbox intersection (with ground) indicator
-* Cyan: Manually placed hitbox.
-* Yellow: Newly added hitbox
+* Cyan: Manually placed hitbox
+* Yellow: Newly added hitbox (in patch comparisons)
 * Teal: Shields (e.g. Brig shield)
 * Orange: Cannot be shot at at that particular angle (e.g. in Genji's Deflect)
 
 # 1.48 PTR changes (Echo and Reinhardt)
 
+**↓↓↓ Click me! [YouTube Video] ↓↓↓**
 [![Play](https://img.youtube.com/vi/JEdYlv4zo2o/maxresdefault.jpg)](https://youtu.be/JEdYlv4zo2o)
 
 ## Links
@@ -43,6 +44,7 @@ More detailed numbers (percentage to old model in brackets):
 
 # Current Hitboxes (1.47)
 
+**↓↓↓ Click me! [YouTube Video] ↓↓↓**
 [![Play](https://img.youtube.com/vi/KzmIBtG1sf0/maxresdefault.jpg)](https://youtu.be/KzmIBtG1sf0)
 
 ## Links
