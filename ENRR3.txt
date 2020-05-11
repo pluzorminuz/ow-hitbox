@@ -2,7 +2,7 @@ settings
 {
 	main
 	{
-		Description: "The server can only display 1 instance of the hitbox, therefore the Genji (who displays the hitbox) must spawn in the 1st slot in Team 1. Press Acknowledge to kill yourself. Press Interact to place the bot at your position and direction (if bot exist). Made by pluzorminuz, Reddit: u/spadler097"
+		Description: "The server can only display 1 instance of the hitbox, therefore the Genji (who displays the hitbox) must spawn in the 1st slot in Team 1. Leave the slot empty for a bot. Press Acknowledge to kill yourself. Press Interact to place the bot at your position and direction (if bot exist). Made by pluzorminuz, Reddit: u/spadler097"
 	}
 
 	modes
@@ -819,15 +819,7 @@ rule("kill button (acknowledge)")
 	}
 }
 
-rule("Enable the following 4 rules if you need a bot, remember to leave Team 1 first slot for the Bot to spawn :)")
-{
-	event
-	{
-		Ongoing - Global;
-	}
-}
-
-disabled rule("spawn bot")
+rule("spawn bot")
 {
 	event
 	{
@@ -845,7 +837,7 @@ disabled rule("spawn bot")
 	}
 }
 
-disabled rule("bot genji deflect initial (makes bot keep deflecting)")
+rule("bot genji deflect initial (makes bot keep deflecting)")
 {
 	event
 	{
@@ -870,7 +862,7 @@ disabled rule("bot genji deflect initial (makes bot keep deflecting)")
 	}
 }
 
-disabled rule("bot genji deflect loop (makes bot keep deflecting)")
+rule("bot genji deflect loop (makes bot keep deflecting)")
 {
 	event
 	{
@@ -898,7 +890,7 @@ disabled rule("bot genji deflect loop (makes bot keep deflecting)")
 	}
 }
 
-disabled rule("place bot (interect key)")
+rule("place bot (interect key)")
 {
 	event
 	{
@@ -912,6 +904,7 @@ disabled rule("place bot (interect key)")
 		Has Spawned(Event Player) == True;
 		(Slot Of(Event Player) != 0 || Team Of(Event Player) != Team 1) == True;
 		Is Button Held(Event Player, Interact) == True;
+		Is Dummy Bot(Players In Slot(0, Team 1)) == True;
 	}
 
 	actions
