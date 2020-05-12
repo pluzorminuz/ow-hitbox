@@ -7,7 +7,7 @@ Contains the Workshop scripts I used for the Hitbox project. As well as the plac
 Thanks KarQ! It features new visualizations made specifically for this video. I hope you enjoyed!
 
 **↓↓↓ Click me! [YouTube Video] ↓↓↓**
-[![Play](https://img.youtube.com/vi/0UsX3nborfA/maxresdefault.jpg)](0UsX3nborfA)
+[![Play](https://img.youtube.com/vi/0UsX3nborfA/maxresdefault.jpg)](https://youtu.be/0UsX3nborfA)
 
 # Color Coding
 
@@ -213,4 +213,4 @@ Therefore after one scan, you should only see the following types of lines
 |Date||
 |:--|:--|
 |200512|* Added color code explanation|
-|200513|* Added Junkrat's Mine, Junkrat's Trap, Genji's Deflect, Training Bot, Brigitte Shield, MErcy Valkyrie to the playlist|
+|200513|* Added Junkrat's Mine, Junkrat's Trap, Genji's Deflect, Training Bot, Brigitte Shield, Mercy Valkyrie to the playlist|
