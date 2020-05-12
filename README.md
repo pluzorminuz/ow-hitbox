@@ -2,6 +2,12 @@
 
 Contains the Workshop scripts I used for the Hitbox project. As well as the place where everything will be kept up-to-date, instead of updating the Reddit post every time.
 
+# OVERWATCH HITBOXES for EVERY HERO
+
+Thanks KarQ! It features new visualizations made specifically for this video. I hope you enjoyed!
+**↓↓↓ Click me! [YouTube Video] ↓↓↓**
+[![Play](https://img.youtube.com/vi/0UsX3nborfA/maxresdefault.jpg)](0UsX3nborfA)
+
 # Color Coding
 
 Each colour represent something different:
@@ -206,3 +212,4 @@ Therefore after one scan, you should only see the following types of lines
 |Date||
 |:--|:--|
 |200512|* Added color code explanation|
+|200513|* Added Junkrat's Mine, Junkrat's Trap, Genji's Deflect, Training Bot, Brigitte Shield, MErcy Valkyrie to the playlist|
