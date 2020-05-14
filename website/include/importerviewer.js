@@ -7,9 +7,9 @@ ImporterViewer = function ()
 ImporterViewer.prototype.Init = function (canvasName)
 {
 	var viewerSettings = {
-		cameraEyePosition : [8.0, -6.0, 4.0],
-		cameraCenterPosition : [0.0, 0.0, 0.0],
-		cameraUpVector : [0, 0, 1]
+		cameraEyePosition : [0, -6.0, 1.25],
+		cameraCenterPosition : [0.0, 0.0, 1.25],
+		cameraUpVector : [0, 1, 0]
 	};
 
 	this.viewer = new JSM.ThreeViewer ();
