@@ -1,0 +1,749 @@
+settings
+{
+	lobby
+	{
+		Max Team 2 Players: 0
+	}
+
+	modes
+	{
+		disabled Assault
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		disabled Control
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		disabled Escort
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		disabled Hybrid
+		{
+			Limit Roles: 2 Of Each Role Per Team
+		}
+
+		Practice Range
+		{
+			Hero Limit: Off
+			Training Partner: Off
+
+			enabled maps
+			{
+			}
+		}
+
+		Team Deathmatch
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+
+	heroes
+	{
+		Team 1
+		{
+			McCree
+			{
+				Combat Roll: Off
+				Flashbang: Off
+				No Ammunition Requirement: On
+				Quick Melee: Off
+				Secondary Fire: Off
+				Ultimate Ability Deadeye: Off
+			}
+		}
+
+		Team 2
+		{
+			Genji
+			{
+				Deflect Cooldown Time: 0%
+			}
+		}
+
+		General
+		{
+			D.Va
+			{
+				Defense Matrix Maximum Time: 500%
+				Defense Matrix Recharge Rate: 500%
+			}
+
+			enabled heroes
+			{
+				McCree
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: horz
+		1: vert
+		2: magni
+		3: type
+		4: nav_dir
+		5: nav_v
+		6: nav_h
+		7: pause
+		8: angle360
+		9: cam_center
+		10: cam_offset
+
+	player:
+		0: eye
+		1: horz
+		2: vert
+		3: unit
+		4: category
+		5: nav_dir
+		6: exp_horz
+		7: exp_vert
+		8: gen_dir
+		9: gen_pos
+		10: gen_eye
+}
+
+subroutines
+{
+	0: teleport_roadhog
+	1: save_info
+	4: set_hud
+	5: _Reflect_Global_Setting
+	6: _Reflect_Player_Setting
+	7: teleport_roadhog_genji
+}
+
+rule("global")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.pause = 1;
+		"defelcet 6"
+		Global.horz = -152;
+		Global.vert = 5.810;
+		"test"
+		disabled Global.horz = 0;
+		Global.nav_dir = 3;
+		Global.magni = 0.010;
+		disabled Call Subroutine(_Reflect_Global_Setting);
+	}
+}
+
+rule("genji deflect! ini")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 2;
+		Slot Of(Event Player) == 4;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Holding Button(Event Player, Secondary Fire);
+		Wait(11, Ignore Condition);
+		Stop Holding Button(Event Player, Secondary Fire);
+		Wait(8, Ignore Condition);
+		Loop;
+	}
+}
+
+disabled rule("genji deflect!")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 2;
+		Slot Of(Event Player) == 4;
+		Is Alive(Event Player) == True;
+		Is Using Ability 2(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(0.250, Ignore Condition);
+		Stop Holding Button(Event Player, Ability 2);
+		Wait(0.250, Ignore Condition);
+		Start Holding Button(Event Player, Ability 2);
+	}
+}
+
+rule("reflect global setting")
+{
+	event
+	{
+		Subroutine;
+		_Reflect_Global_Setting;
+	}
+
+	actions
+	{
+		"roadhog (t2 s5)"
+		Create Dummy Bot(Hero(Roadhog), Team 2, 5, Vector(10, 0, 10), Vector(0, 0, 0));
+		Set Gravity(Players In Slot(5, Team 2), 0);
+		disabled Global.nav_v = Array(0.100, 0, -0.100, 0);
+		disabled Global.nav_h = Array(0, -0.100, 0, 0.100);
+		Global.nav_v = Array(0.200, 0, -0.200, 0);
+		Global.nav_h = Array(0, -0.200, 0, 0.200);
+		disabled Global.nav_v = Array(0.020, 0, -0.020, 0);
+		disabled Global.nav_h = Array(0, -0.020, 0, 0.020);
+		Global.angle360 = 359;
+		Global.cam_center = Vector(92.661, -0.611, -7.458);
+		Global.cam_offset = Vector(0, 0, 3);
+		"stacking reinhardt (1 2)"
+		Create Dummy Bot(Hero(Reinhardt), Team 1, 2, Vector(0, 9, 0), Vector(0, 0, 0));
+		"stacking reinhardt (2 2)"
+		Create Dummy Bot(Hero(Reinhardt), Team 2, 2, Vector(0, 6, 0), Vector(0, 0, 0));
+		"stacking reinhardt (1 1)"
+		Create Dummy Bot(Hero(Reinhardt), Team 1, 1, Vector(0, 3, 0), Vector(0, 0, 0));
+		"stacking reinhardt (2 1)"
+		Create Dummy Bot(Hero(Reinhardt), Team 2, 1, Vector(0, 0, 0), Vector(0, 0, 0));
+		"the genji (2 4)"
+		disabled Create Dummy Bot(Hero(Genji), Team 2, 4, Vector(0, 12, 0), Vector(0, 0, 0));
+		"the genji (2 4)"
+		Create Dummy Bot(Hero(D.Va), Team 2, 4, Vector(0, 12, 0), Vector(1, -1, 0));
+		"roadhog (t1 s5)"
+		disabled Create Dummy Bot(Hero(Roadhog), Team 1, 5, Vector(18, 9.600, 0), Vector(0, 0, 0));
+		disabled Set Gravity(Players In Slot(5, Team 1), 0);
+		Wait(1, Ignore Condition);
+		disabled Start Facing(Players In Slot(4, Team 2), Direction From Angles(70, 45), 10000, To World, None);
+		disabled Wait(0.250, Ignore Condition);
+		disabled Call Subroutine(teleport_roadhog_genji);
+	}
+}
+
+rule("player settings")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Set Gravity(Event Player, 0);
+		Set Move Speed(Event Player, 0);
+		Wait(1, Ignore Condition);
+		Start Facing(Event Player, Direction From Angles(Global.horz, Global.vert), 10000, To World, Direction and Turn Rate);
+		Call Subroutine(_Reflect_Player_Setting);
+		Call Subroutine(set_hud);
+		Wait(1, Ignore Condition);
+		Call Subroutine(_Reflect_Global_Setting);
+		Wait(1, Ignore Condition);
+		Call Subroutine(teleport_roadhog);
+	}
+}
+
+rule("reflect player settings")
+{
+	event
+	{
+		Subroutine;
+		_Reflect_Player_Setting;
+	}
+
+	actions
+	{
+		Set Damage Dealt(Event Player, 0.010);
+		"front (scan #1)"
+		Teleport(Event Player, Vector(10, 11, 3));
+		disabled Start Holding Button(Event Player, Crouch);
+	}
+}
+
+rule("main loop new")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 2;
+		Slot Of(Event Player) == 4;
+		Is Alive(Event Player) == True;
+		Is Firing Secondary(Event Player) == True;
+	}
+
+	actions
+	{
+		Start Holding Button(Players In Slot(0, Team 1), Primary Fire);
+		Wait(9.500, Ignore Condition);
+		Stop Holding Button(Players In Slot(0, Team 1), Primary Fire);
+	}
+}
+
+rule("horz + (left)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Ability 1) == True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+	}
+
+	actions
+	{
+		Global.horz += Global.magni;
+		Call Subroutine(teleport_roadhog);
+		Wait(0.200, Abort When False);
+		Loop;
+	}
+}
+
+rule("horz - (right)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Ability 2) == True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+	}
+
+	actions
+	{
+		Global.horz -= Global.magni;
+		Call Subroutine(teleport_roadhog);
+		Wait(0.200, Abort When False);
+		Loop;
+	}
+}
+
+rule("vert + (down)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Melee) == True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+	}
+
+	actions
+	{
+		Global.vert += Global.magni;
+		Call Subroutine(teleport_roadhog);
+		Wait(0.200, Abort When False);
+		Loop;
+	}
+}
+
+rule("vert - (up)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Reload) == True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+	}
+
+	actions
+	{
+		Global.vert -= Global.magni;
+		Call Subroutine(teleport_roadhog);
+		Wait(0.200, Abort When False);
+		Loop;
+	}
+}
+
+rule("[sub] save info to player variable")
+{
+	event
+	{
+		Subroutine;
+		save_info;
+	}
+
+	actions
+	{
+		Players In Slot(0, Team 1).eye = 10000 * Eye Position(Players In Slot(0, Team 1));
+		Players In Slot(0, Team 1).horz = 10000 * Horizontal Facing Angle Of(Players In Slot(0, Team 1));
+		Players In Slot(0, Team 1).vert = 10000 * Vertical Facing Angle Of(Players In Slot(0, Team 1));
+		Players In Slot(0, Team 1).unit = 10000 * Facing Direction Of(Players In Slot(0, Team 1));
+		Players In Slot(0, Team 1).category = Global.type;
+		Players In Slot(0, Team 1).nav_dir = Global.nav_dir;
+		Players In Slot(0, Team 1).exp_horz = Global.horz;
+		Event Player.exp_vert = Global.vert;
+		Players In Slot(0, Team 1).gen_dir = 10000 * Facing Direction Of(Players In Slot(4, Team 2));
+		Players In Slot(0, Team 1).gen_pos = 10000 * Position Of(Players In Slot(4, Team 2));
+		Players In Slot(0, Team 1).gen_eye = 10000 * Eye Position(Players In Slot(4, Team 2));
+		Enable Inspector Recording;
+		Disable Inspector Recording;
+	}
+}
+
+rule("[sub] teleport roadhog (player)")
+{
+	event
+	{
+		Subroutine;
+		teleport_roadhog;
+	}
+
+	actions
+	{
+		Teleport(Players In Slot(5, Team 2), Eye Position(Players In Slot(0, Team 1)) + Facing Direction Of(Players In Slot(0, Team 1))
+			* 15 - World Vector Of(Vector(0, 1, 0), Players In Slot(0, Team 1), Rotation));
+	}
+}
+
+disabled rule("reflected (hit team 1/5 roadhog) type = 0")
+{
+	event
+	{
+		Player Took Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 5;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Global.type = 0;
+		Global.horz += Global.nav_h[(Global.nav_dir + 2) % 4];
+		Global.horz += Global.nav_h[(Global.nav_dir + 3) % 4];
+		Global.vert += Global.nav_v[(Global.nav_dir + 2) % 4];
+		Global.vert += Global.nav_v[(Global.nav_dir + 3) % 4];
+		Global.nav_dir += 3;
+		Global.nav_dir %= 4;
+		Wait(0.100, Ignore Condition);
+		Call Subroutine(save_info);
+		Call Subroutine(teleport_roadhog);
+		Global.type = 0;
+	}
+}
+
+rule("detect")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Is Firing Primary(Event Player) == True;
+	}
+
+	actions
+	{
+		Wait(0.032, Ignore Condition);
+		If(Global.type == 0);
+			Global.horz += Global.nav_h[(Global.nav_dir + 2) % 4];
+			Global.horz += Global.nav_h[(Global.nav_dir + 3) % 4];
+			Global.vert += Global.nav_v[(Global.nav_dir + 2) % 4];
+			Global.vert += Global.nav_v[(Global.nav_dir + 3) % 4];
+			Global.nav_dir += 3;
+			Global.nav_dir %= 4;
+			Wait(0.100, Ignore Condition);
+			Call Subroutine(save_info);
+			Call Subroutine(teleport_roadhog);
+			Global.type = 0;
+		End;
+	}
+}
+
+rule("not reflected (hit team 2/5 roadhog) type = 1")
+{
+	event
+	{
+		Player Took Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 2;
+		Slot Of(Event Player) == 5;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Global.type = 1;
+		Global.nav_dir += 1;
+		Global.nav_dir %= 4;
+		Global.horz += Global.nav_h[Global.nav_dir];
+		Global.vert += Global.nav_v[Global.nav_dir];
+		Wait(0.100, Ignore Condition);
+		Call Subroutine(save_info);
+		Call Subroutine(teleport_roadhog);
+		Global.type = 0;
+	}
+}
+
+rule("not reflected (hit team 2/4 genji) type = 1")
+{
+	event
+	{
+		Player Took Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 2;
+		Slot Of(Event Player) == 4;
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Global.type = 1;
+		Global.nav_dir += 1;
+		Global.nav_dir %= 4;
+		Global.horz += Global.nav_h[Global.nav_dir];
+		Global.vert += Global.nav_v[Global.nav_dir];
+		Wait(0.100, Ignore Condition);
+		Call Subroutine(save_info);
+		Call Subroutine(teleport_roadhog);
+		Global.type = 0;
+	}
+}
+
+rule("change magnitude")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Ultimate) == True;
+	}
+
+	actions
+	{
+		Global.magni = 1;
+	}
+}
+
+rule("change magnitude back to 0.1")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Ultimate) != True;
+	}
+
+	actions
+	{
+		Global.magni = 0.010;
+	}
+}
+
+rule("Pause")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Secondary Fire) == True;
+	}
+
+	actions
+	{
+		Global.pause = 1;
+		Stop Facing(Event Player);
+	}
+}
+
+disabled rule("360 cam")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Secondary Fire) == True;
+	}
+
+	actions
+	{
+		Set Invisible(All Players(All Teams), All);
+		Set Invisible(Players In Slot(4, Team 2), None);
+		disabled Start Camera(Event Player, Global.cam_center + Vector(2.950 * Sine From Degrees(360 - Global.angle360), 0,
+			2.950 * Cosine From Degrees(360 - Global.angle360)), Global.cam_center, 0);
+		Start Camera(Event Player, Position Of(Players In Slot(4, Team 2)) + Vector(0, 1, 0) + Vector(3.090 * Sine From Degrees(
+			360 - Global.angle360), 0, 3.090 * Cosine From Degrees(360 - Global.angle360)), Players In Slot(4, Team 2) + Vector(0, 1, 0),
+			0);
+		Global.angle360 = (Global.angle360 + 1) % 360;
+		disabled Set Slow Motion(10);
+	}
+}
+
+rule("set hud")
+{
+	event
+	{
+		Subroutine;
+		set_hud;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("angle"), Global.horz, Global.vert), Null, Null, Left, 90, White,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("a"), Horizontal Facing Angle Of(Event Player),
+			Vertical Facing Angle Of(Event Player)), Null, Null, Left, 0, White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("-> {0}", Global.type), Null, Null, Left, 0, White, White, White, Visible To and String,
+			Default Visibility);
+		Create HUD Text(Event Player, String("({0})", Global.angle360), Null, Null, Left, 0, White, White, White, Visible To and String,
+			Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", 10000 * Position Of(Event Player), Custom String("pos")), Null, Null, Left, 0,
+			White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("genji pos"), 10000 * Position Of(Players In Slot(4, Team 2))), Null,
+			Null, Left, 0, White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("genji eye"), 10000 * Eye Position(Players In Slot(4, Team 2))),
+			Null, Null, Left, 0, White, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("dir"), Global.nav_dir), Null, Null, Left, 0, White, White, White,
+			Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("dot"), Dot Product(Facing Direction Of(Event Player),
+			Facing Direction Of(Players In Slot(4, Team 2)))), Null, Null, Left, 0, White, White, White, Visible To and String,
+			Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("primary"), Is Firing Primary(Event Player)), Null, Null, Left, 0,
+			White, White, White, Visible To and String, Default Visibility);
+	}
+}
+
+rule("start")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Interact) == True;
+	}
+
+	actions
+	{
+		Global.pause = 0;
+		Start Facing(Players In Slot(0, Team 1), Direction From Angles(Global.horz, Global.vert), 10000, To World,
+			Direction and Turn Rate);
+		Wait(1, Ignore Condition);
+		Call Subroutine(teleport_roadhog);
+	}
+}
+
+rule("[sub] teleport roadhog (genji)")
+{
+	event
+	{
+		Subroutine;
+		teleport_roadhog_genji;
+	}
+
+	actions
+	{
+		Teleport(Players In Slot(5, Team 1), Eye Position(Players In Slot(4, Team 2)) + Facing Direction Of(Players In Slot(4, Team 2))
+			* 10 - World Vector Of(Vector(0, 1, 0), Players In Slot(4, Team 2), Rotation));
+	}
+}
