@@ -7,8 +7,8 @@ ImporterViewer = function ()
 ImporterViewer.prototype.Init = function (canvasName)
 {
 	var viewerSettings = {
-		cameraEyePosition : [0, -6.0, 1.25],
-		cameraCenterPosition : [0.0, 0.0, 1.25],
+		cameraEyePosition : [0, 0, 8],
+		cameraCenterPosition : [0.0, 0.0, 0.0],
 		cameraUpVector : [0, 1, 0]
 	};
 
@@ -19,7 +19,7 @@ ImporterViewer.prototype.Init = function (canvasName)
 	}
 	this.viewer.navigation.SetNearDistanceLimit (0.1);
 	this.viewer.navigation.SetFarDistanceLimit (100.0);
-	this.viewer.SetClearColor (0x101010);
+	this.viewer.SetClearColor (0x111111);
 	this.viewer.Draw ();
 	
 	return true;
