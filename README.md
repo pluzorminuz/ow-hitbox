@@ -215,3 +215,4 @@ Therefore after one scan, you should only see the following types of lines
 |200512|Added color code explanation|
 |200513|Added Junkrat's Mine, Junkrat's Trap, Genji's Deflect, Training Bot, Brigitte Shield, Mercy Valkyrie to the playlist|
 |200519|Updated the playlist to reflect hitbox changes in 1.48 LIVE|
+||1.48 LIVE has passed the verification test. Both Rein and Echo's hitbox was pushed to LIVE as in PTR|
