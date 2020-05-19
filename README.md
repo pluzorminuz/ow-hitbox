@@ -2,6 +2,14 @@
 
 Contains the Workshop scripts I used for the Hitbox project. As well as the place where everything will be kept up-to-date, instead of updating the Reddit post every time.
 
+# Current hitboxes (1.48 LIVE)
+
+**↓↓↓ Click me! [YouTube Video] ↓↓↓**
+[![Play](https://img.youtube.com/vi/vemd-CfVbKQ/maxresdefault.jpg)](https://youtu.be/vemd-CfVbKQ)
+
+You can also use the Workshop code **HP8XQ** to play with Genji's Deflect hitbox!
+
+
 # OVERWATCH HITBOXES for EVERY HERO
 
 Thanks KarQ! It features new visualizations made specifically for this video. I hope you enjoyed!
@@ -49,7 +57,7 @@ More detailed numbers (percentage to old model in brackets):
 
 \*\* This number was taken by considering the entire Head hitbox, disregarding the obstructed portion (because it is hard to define the separation between body and head. Take these numbers very carefully
 
-# Current Hitboxes (1.47)
+# Hero Hitboxes uptill 1.47 LIVE
 
 **↓↓↓ Click me! [YouTube Video] ↓↓↓**
 [![Play](https://img.youtube.com/vi/KzmIBtG1sf0/maxresdefault.jpg)](https://youtu.be/KzmIBtG1sf0)
