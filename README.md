@@ -2,6 +2,22 @@
 
 Contains the Workshop scripts I used for the Hitbox project. As well as the place where everything will be kept up-to-date, instead of updating the Reddit post every time.
 
+## Useful Links
+
+* [GIF album](https://imgur.com/a/AN33T4F)
+
+* [YouTube playlist](https://www.youtube.com/playlist?list=PL61EEnh7kA_NEbti6BLQmXEtjzcBKuRdY)
+
+* [1.48- Orthographic comparison](https://youtu.be/KzmIBtG1sf0)
+
+* [Video commentary](https://youtu.be/xsXvr3Cr5k8)
+
+* [OVERWATCH HITBOXES for EVERY HERO by KarQ](https://youtu.be/vemd-CfVbKQ)
+
+* [Raw video files (Google Drive)](https://drive.google.com/drive/folders/1dAZnbBayD5KdKgHqPL9FgE1Uv40B3Stw?usp=sharing)
+
+Feel free to use these resources for whatever you want.
+
 # Current hitboxes (1.48 LIVE)
 
 **↓↓↓ Click me! [YouTube Video] ↓↓↓**
