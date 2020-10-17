@@ -1,0 +1,1781 @@
+settings
+{
+	main
+	{
+		Description: "The server can only display 1 instance of the hitbox, therefore the Genji (who displays the hitbox) must spawn in the 1st slot in Team 1. Leave the slot empty for a bot. Press Acknowledge to kill yourself. Press Interact to place the bot at your position and direction (if bot exist). Made by pluzorminuz, Reddit: u/spadler097"
+	}
+
+	lobby
+	{
+		Max Team 1 Players: 1
+	}
+
+	modes
+	{
+		disabled Practice Range
+		{
+			Training Partner: Off
+		}
+
+		Team Deathmatch
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+			No Ammunition Requirement: On
+			Spawn With Ultimate Ready: On
+			Ultimate Generation: 500%
+			Ultimate Generation - Combat: 500%
+			Ultimate Generation - Passive: 500%
+
+			D.Va
+			{
+				Defense Matrix Maximum Time: 500%
+				Defense Matrix Recharge Rate: 500%
+			}
+
+			Genji
+			{
+				Deflect Cooldown Time: 0%
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: kinetic_verts
+		1: kinetic_edges
+		2: matrix_verts
+		3: matrix_edges
+		4: hero_limits
+		5: hero_num
+		11: deflect_verts
+		12: deflect_edges
+
+	player:
+		0: view
+}
+
+subroutines
+{
+	0: kinetic_display1
+	1: matrix_display1
+	2: spawn_bot
+	8: deflect_display1
+	10: deflect_display2
+}
+
+rule("global settings")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.deflect_verts = Array(Vector(0, 0, 0), Vector(999.127, 750.662, 747.048), Vector(999.127, 750.662, -748.471), Vector(
+			999.127, -1500.070, 747.048), Vector(999.127, -1500.070, -748.471), Vector(-498.837, 750.662, 747.048), Vector(-498.837,
+			750.662, 500.753), Vector(-498.837, 750.662, -502.177), Vector(-498.837, 750.662, -748.471), Vector(-498.837, -1500.070,
+			747.048), Vector(-498.837, -1500.070, 500.753), Vector(-498.837, -1500.070, -502.177), Vector(-498.837, -1500.070, -748.471),
+			Vector(3.853, 750.662, 500.753), Vector(3.853, 750.662, -502.177), Vector(3.853, -1500.070, 500.753), Vector(3.853, -1500.070,
+			-502.177));
+		Global.deflect_edges = Array(Array(1, 2), Array(1, 3), Array(2, 4), Array(3, 4), Array(1, 5), Array(5, 9), Array(3, 9), Array(5,
+			6), Array(6, 10), Array(9, 10), Array(6, 13), Array(13, 15), Array(10, 15), Array(13, 14), Array(14, 16), Array(15, 16), Array(
+			14, 7), Array(7, 11), Array(11, 16), Array(7, 8), Array(8, 12), Array(11, 12), Array(2, 8), Array(4, 12));
+		Global.kinetic_verts = Array(Vector(0, 0, 0), Vector(2599.860, 1099.710, 1000.300), Vector(2599.860, 1099.710, -999.816), Vector(
+			2599.860, -1599.900, 1000.300), Vector(2599.860, -1599.900, -999.816), Vector(403.875, 1099.710, 1000.300), Vector(403.875,
+			1099.710, -999.816), Vector(403.875, -1599.900, 1000.300), Vector(403.875, -1599.900, -999.816));
+		Global.kinetic_edges = Array(Array(1, 3), Array(1, 2), Array(3, 4), Array(2, 4), Array(2, 6), Array(4, 8), Array(6, 8), Array(7,
+			8), Array(5, 7), Array(1, 5), Array(3, 7), Array(5, 6));
+		Global.matrix_verts = Array(Vector(0, 0, 0), Vector(1025.120, 99.696, 125.223), Vector(1025.120, 99.696, -125.260), Vector(
+			1025.120, -99.414, 125.223), Vector(1025.120, -99.414, -125.266), Vector(79.635, 99.696, 125.223), Vector(79.635, 99.696,
+			-125.266), Vector(79.635, -99.415, 125.223), Vector(79.635, -99.415, -125.266));
+		Global.matrix_edges = Array(Array(1, 3), Array(1, 2), Array(3, 4), Array(2, 4), Array(2, 6), Array(4, 8), Array(6, 8), Array(7, 8),
+			Array(5, 7), Array(1, 5), Array(3, 7), Array(5, 6));
+		Global.hero_limits = Array(Hero(Genji), Hero(Sigma), Hero(D.Va));
+		Call Subroutine(spawn_bot);
+	}
+}
+
+rule("player settings (genji)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Slot Of(Event Player) == 0;
+		Team Of(Event Player) == Team 1;
+		Hero Of(Event Player) == Hero(Genji);
+	}
+
+	actions
+	{
+		Destroy All Effects;
+		Wait(3, Ignore Condition);
+		Call Subroutine(deflect_display1);
+		Wait(1, Ignore Condition);
+		Call Subroutine(deflect_display2);
+		Event Player.view = True;
+	}
+}
+
+rule("player settings (sigma)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Slot Of(Event Player) == 0;
+		Team Of(Event Player) == Team 1;
+		Hero Of(Event Player) == Hero(Sigma);
+	}
+
+	actions
+	{
+		Destroy All Effects;
+		Wait(3, Ignore Condition);
+		Call Subroutine(kinetic_display1);
+		Event Player.view = True;
+	}
+}
+
+rule("player settings (dva)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Slot Of(Event Player) == 0;
+		Team Of(Event Player) == Team 1;
+		Hero Of(Event Player) == Hero(D.Va);
+	}
+
+	actions
+	{
+		Destroy All Effects;
+		Wait(3, Ignore Condition);
+		Call Subroutine(matrix_display1);
+		Event Player.view = True;
+	}
+}
+
+rule("spawn bot")
+{
+	event
+	{
+		Subroutine;
+		spawn_bot;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Global.hero_limits[Global.hero_num], Team 1, 0, Vector(0, 0, 0), Vector(0, 0, 0));
+		Set Max Health(Players In Slot(0, Team 1), 1000);
+		Wait(2, Ignore Condition);
+		Start Heal Over Time(Players In Slot(0, Team 1), Players In Slot(0, Team 1), 9999, 100);
+		Set Facing(Players In Slot(0, Team 1), Direction From Angles(Horizontal Facing Angle Of(Players In Slot(0, Team 1)), -0.010),
+			To World);
+	}
+}
+
+rule("deflect display part 1")
+{
+	event
+	{
+		Subroutine;
+		deflect_display1;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[0][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[0][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[0][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[0][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[0][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[0][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[0][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[0][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[0][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[0][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[0][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[0][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[0][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[0][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[0][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[0][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[1][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[1][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[1][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[1][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[1][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[1][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[1][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[1][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[1][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[1][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[1][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[1][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[1][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[1][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[1][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[1][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[2][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[2][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[2][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[2][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[2][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[2][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[2][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[2][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[2][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[2][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[2][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[2][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[2][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[2][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[2][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[2][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[3][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[3][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[3][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[3][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[3][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[3][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[3][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[3][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[3][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[3][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[3][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[3][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[3][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[3][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[3][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[3][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[4][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[4][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[4][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[4][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[4][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[4][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[4][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[4][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[4][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[4][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[4][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[4][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[4][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[4][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[4][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[4][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[5][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[5][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[5][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[5][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[5][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[5][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[5][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[5][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[5][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[5][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[5][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[5][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[5][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[5][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[5][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[5][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[6][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[6][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[6][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[6][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[6][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[6][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[6][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[6][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[6][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[6][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[6][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[6][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[6][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[6][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[6][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[6][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[7][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[7][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[7][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[7][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[7][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[7][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[7][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[7][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[7][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[7][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[7][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[7][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[7][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[7][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[7][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[7][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[8][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[8][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[8][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[8][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[8][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[8][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[8][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[8][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[8][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[8][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[8][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[8][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[8][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[8][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[8][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[8][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[9][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[9][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[9][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[9][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[9][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[9][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[9][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[9][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[9][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[9][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[9][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[9][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[9][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[9][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[9][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[9][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[10][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[10][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[10][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[10][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[10][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[10][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[10][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[10][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[10][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[10][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[10][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[10][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[10][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[10][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[10][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[10][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[11][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[11][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[11][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[11][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[11][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[11][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[11][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[11][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[11][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[11][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[11][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[11][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[11][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[11][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[11][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[11][1]])) / 1000, White, Position and Radius);
+	}
+}
+
+rule("deflect display part 2")
+{
+	event
+	{
+		Subroutine;
+		deflect_display2;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[12][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[12][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[12][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[12][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[12][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[12][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[12][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[12][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[12][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[12][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[12][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[12][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[12][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[12][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[12][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[12][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[13][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[13][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[13][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[13][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[13][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[13][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[13][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[13][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[13][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[13][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[13][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[13][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[13][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[13][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[13][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[13][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[14][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[14][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[14][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[14][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[14][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[14][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[14][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[14][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[14][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[14][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[14][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[14][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[14][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[14][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[14][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[14][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[15][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[15][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[15][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[15][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[15][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[15][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[15][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[15][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[15][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[15][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[15][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[15][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[15][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[15][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[15][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[15][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[16][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[16][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[16][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[16][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[16][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[16][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[16][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[16][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[16][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[16][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[16][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[16][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[16][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[16][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[16][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[16][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[17][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[17][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[17][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[17][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[17][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[17][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[17][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[17][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[17][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[17][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[17][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[17][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[17][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[17][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[17][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[17][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[18][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[18][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[18][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[18][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[18][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[18][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[18][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[18][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[18][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[18][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[18][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[18][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[18][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[18][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[18][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[18][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[19][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[19][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[19][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[19][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[19][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[19][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[19][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[19][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[19][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[19][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[19][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[19][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[19][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[19][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[19][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[19][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[20][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[20][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[20][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[20][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[20][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[20][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[20][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[20][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[20][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[20][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[20][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[20][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[20][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[20][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[20][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[20][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[21][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[21][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[21][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[21][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[21][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[21][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[21][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[21][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[21][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[21][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[21][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[21][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[21][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[21][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[21][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[21][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[22][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[22][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[22][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[22][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[22][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[22][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[22][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[22][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[22][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[22][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[22][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[22][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[22][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[22][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[22][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[22][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[23][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[23][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[23][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[23][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[23][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[23][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[23][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[23][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[23][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.deflect_verts[Global.deflect_edges[23][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[23][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.deflect_verts[Global.deflect_edges[23][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[23][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.deflect_verts[Global.deflect_edges[23][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.deflect_verts[Global.deflect_edges[23][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.deflect_verts[Global.deflect_edges[23][1]])) / 1000, White, Position and Radius);
+	}
+}
+
+rule("kinetic display part 1")
+{
+	event
+	{
+		Subroutine;
+		kinetic_display1;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[0][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[0][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[0][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[0][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[0][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[0][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[0][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[0][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[0][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[0][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[0][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[0][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[0][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[0][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[0][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[0][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[1][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[1][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[1][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[1][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[1][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[1][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[1][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[1][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[1][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[1][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[1][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[1][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[1][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[1][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[1][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[1][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[2][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[2][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[2][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[2][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[2][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[2][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[2][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[2][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[2][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[2][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[2][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[2][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[2][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[2][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[2][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[2][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[3][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[3][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[3][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[3][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[3][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[3][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[3][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[3][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[3][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[3][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[3][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[3][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[3][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[3][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[3][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[3][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[4][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[4][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[4][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[4][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[4][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[4][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[4][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[4][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[4][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[4][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[4][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[4][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[4][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[4][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[4][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[4][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[5][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[5][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[5][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[5][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[5][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[5][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[5][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[5][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[5][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[5][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[5][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[5][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[5][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[5][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[5][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[5][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[6][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[6][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[6][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[6][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[6][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[6][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[6][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[6][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[6][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[6][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[6][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[6][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[6][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[6][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[6][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[6][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[7][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[7][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[7][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[7][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[7][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[7][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[7][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[7][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[7][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[7][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[7][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[7][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[7][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[7][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[7][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[7][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[8][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[8][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[8][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[8][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[8][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[8][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[8][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[8][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[8][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[8][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[8][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[8][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[8][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[8][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[8][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[8][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[9][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[9][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[9][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[9][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[9][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[9][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[9][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[9][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[9][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[9][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[9][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[9][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[9][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[9][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[9][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[9][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[10][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[10][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[10][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[10][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[10][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[10][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[10][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[10][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[10][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[10][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[10][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[10][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[10][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[10][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[10][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[10][1]])) / 1000, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[11][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[11][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[11][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[11][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[11][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[11][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[11][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[11][0]])) / 1000, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[11][1]]) + Sine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[11][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[11][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.kinetic_verts[Global.kinetic_edges[11][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[11][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.kinetic_verts[Global.kinetic_edges[11][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.kinetic_verts[Global.kinetic_edges[11][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.kinetic_verts[Global.kinetic_edges[11][1]])) / 1000, White, Position and Radius);
+	}
+}
+
+rule("matrix display part 1")
+{
+	event
+	{
+		Subroutine;
+		matrix_display1;
+	}
+
+	actions
+	{
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[0][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[0][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[0][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[0][0]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[0][0]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[0][0]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[0][0]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[0][0]])) / 100, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[0][1]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[0][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[0][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[0][1]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[0][1]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[0][1]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[0][1]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[0][1]])) / 100, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[1][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[1][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[1][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[1][0]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[1][0]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[1][0]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[1][0]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[1][0]])) / 100, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[1][1]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[1][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[1][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[1][1]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[1][1]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[1][1]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[1][1]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[1][1]])) / 100, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[2][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[2][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[2][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[2][0]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[2][0]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[2][0]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[2][0]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[2][0]])) / 100, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[2][1]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[2][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[2][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[2][1]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[2][1]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[2][1]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[2][1]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[2][1]])) / 100, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[3][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[3][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[3][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[3][0]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[3][0]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[3][0]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[3][0]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[3][0]])) / 100, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[3][1]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[3][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[3][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[3][1]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[3][1]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[3][1]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[3][1]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[3][1]])) / 100, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[4][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[4][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[4][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[4][0]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[4][0]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[4][0]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[4][0]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[4][0]])) / 100, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[4][1]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[4][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[4][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[4][1]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[4][1]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[4][1]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[4][1]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[4][1]])) / 100, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[5][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[5][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[5][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[5][0]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[5][0]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[5][0]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[5][0]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[5][0]])) / 100, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[5][1]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[5][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[5][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[5][1]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[5][1]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[5][1]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[5][1]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[5][1]])) / 100, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[6][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[6][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[6][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[6][0]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[6][0]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[6][0]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[6][0]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[6][0]])) / 100, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[6][1]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[6][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[6][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[6][1]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[6][1]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[6][1]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[6][1]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[6][1]])) / 100, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[7][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[7][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[7][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[7][0]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[7][0]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[7][0]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[7][0]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[7][0]])) / 100, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[7][1]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[7][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[7][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[7][1]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[7][1]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[7][1]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[7][1]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[7][1]])) / 100, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[8][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[8][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[8][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[8][0]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[8][0]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[8][0]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[8][0]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[8][0]])) / 100, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[8][1]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[8][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[8][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[8][1]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[8][1]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[8][1]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[8][1]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[8][1]])) / 100, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[9][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[9][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[9][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[9][0]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[9][0]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[9][0]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[9][0]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[9][0]])) / 100, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[9][1]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[9][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[9][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[9][1]]) + Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[9][1]]), -1 * Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(Event Player)) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[9][1]]) - Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[9][1]])
+			+ Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Z Component Of(
+			Global.matrix_verts[Global.matrix_edges[9][1]])) / 100, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[10][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[10][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[10][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[10][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[10][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[10][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[10][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[10][0]])) / 100, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[10][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[10][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[10][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[10][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[10][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[10][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[10][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[10][1]])) / 100, White, Position and Radius);
+		Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + Vector(Cosine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[11][0]]) + Sine From Degrees(Vertical Facing Angle Of(Event Player))
+			* Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[11][0]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[11][0]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[11][0]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[11][0]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[11][0]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[11][0]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[11][0]])) / 100, Eye Position(Event Player) + Vector(
+			Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[11][1]]) + Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Y Component Of(
+			Global.matrix_verts[Global.matrix_edges[11][1]]) + Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[11][1]]), -1 * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * X Component Of(Global.matrix_verts[Global.matrix_edges[11][1]]) + Cosine From Degrees(
+			Vertical Facing Angle Of(Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[11][1]]),
+			-1 * Sine From Degrees(Horizontal Facing Angle Of(Event Player) - 90) * Sine From Degrees(Vertical Facing Angle Of(
+			Event Player)) * Y Component Of(Global.matrix_verts[Global.matrix_edges[11][1]]) - Sine From Degrees(
+			Horizontal Facing Angle Of(Event Player) - 90) * Cosine From Degrees(Vertical Facing Angle Of(Event Player)) * X Component Of(
+			Global.matrix_verts[Global.matrix_edges[11][1]]) + Cosine From Degrees(Horizontal Facing Angle Of(Event Player) - 90)
+			* Z Component Of(Global.matrix_verts[Global.matrix_edges[11][1]])) / 100, White, Position and Radius);
+	}
+}
+
+rule("limit hero")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) != True;
+		Slot Of(Event Player) == 0;
+		Team Of(Event Player) == Team 1;
+	}
+
+	actions
+	{
+		Set Player Allowed Heroes(Event Player, Global.hero_limits);
+	}
+}
+
+rule("hud display (team 2)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		(Slot Of(Event Player) != 0 || Team Of(Event Player) != Team 1) == True;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("{0}: {1}", Custom String("Dot"), Dot Product(Facing Direction Of(Event Player),
+			Facing Direction Of(Players In Slot(0, Team 1)))), Null, Null, Left, 0, White, White, White, Visible To and String,
+			Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("Deflect"), Dot Product(Facing Direction Of(Event Player),
+			Facing Direction Of(Players In Slot(0, Team 1))) < 0), Null, Null, Left, 1, White, White, White, Visible To and String,
+			Default Visibility);
+		Create HUD Text(Event Player, String("{0} -> {1}", Input Binding String(Button(Interact)), Custom String("Teleport bot")), Null,
+			Null, Left, 9, Green, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} -> {1}", Custom String("ultimate status"), Custom String("Cycle bot hero")), Null, Null,
+			Left, 10, Green, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} -> {1}", Custom String("Acknowledge"), Custom String("Kill yourself")), Null, Null, Left,
+			11, Green, White, White, Visible To and String, Default Visibility);
+	}
+}
+
+rule("kill button (acknowledge)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Acknowledge) == True;
+	}
+
+	actions
+	{
+		Kill(Event Player, Null);
+	}
+}
+
+rule("bot genji deflect loop (makes bot keep deflecting)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+		Is Alive(Event Player) == True;
+		Hero Of(Event Player) == Hero(Genji);
+	}
+
+	actions
+	{
+		Press Button(Event Player, Ability 2);
+		Wait(2.800, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("place bot (interect key)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		(Slot Of(Event Player) != 0 || Team Of(Event Player) != Team 1) == True;
+		Is Button Held(Event Player, Interact) == True;
+	}
+
+	actions
+	{
+		Teleport(Players In Slot(0, Team 1), Position Of(Event Player));
+		Set Facing(Players In Slot(0, Team 1), Facing Direction Of(Event Player), To World);
+	}
+}
+
+rule("bot sigma loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+		Is Alive(Event Player) == True;
+		Hero Of(Event Player) == Hero(Sigma);
+	}
+
+	actions
+	{
+		Wait(0.250, Ignore Condition);
+		Stop Holding Button(Event Player, Ability 1);
+		Wait(0.250, Ignore Condition);
+		Start Holding Button(Event Player, Ability 1);
+		Wait(3, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("bot dva loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+		Has Spawned(Event Player) == True;
+		Hero Of(Event Player) == Hero(D.Va);
+	}
+
+	actions
+	{
+		Start Holding Button(Event Player, Secondary Fire);
+		Wait(11, Ignore Condition);
+		Stop Holding Button(Event Player, Secondary Fire);
+		Wait(6, Ignore Condition);
+		Loop If Condition Is True;
+	}
+}
+
+rule("toggle camera off")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Interact) == True;
+		Is Dummy Bot(Event Player) != True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+	}
+
+	actions
+	{
+		Event Player.view = !Event Player.view;
+	}
+}
+
+rule("toggle camera becomes true")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+		Event Player.view == True;
+	}
+
+	actions
+	{
+		Start Camera(Event Player, Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) - 4 * Facing Direction Of(
+			Event Player), Null, Event Player, False), Eye Position(Event Player), 50);
+	}
+}
+
+rule("toggle camera becomes false")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Team Of(Event Player) == Team 1;
+		Slot Of(Event Player) == 0;
+		Event Player.view == False;
+	}
+
+	actions
+	{
+		Stop Camera(Event Player);
+	}
+}
+
+rule("change bot hero (ult status)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		(Slot Of(Event Player) != 0 || Team Of(Event Player) != Team 1) == True;
+		Is Communicating(Event Player, Ultimate Status) == True;
+	}
+
+	actions
+	{
+		Destroy All Dummy Bots;
+		Global.hero_num = (Global.hero_num + 1) % 3;
+		Wait(0.250, Ignore Condition);
+		Call Subroutine(spawn_bot);
+	}
+}
+
+rule("hud display (team 1)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Team Of(Event Player) == Team 1;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("{0} -> {1}", Input Binding String(Button(Interact)), Custom String("Toggle camera")), Null,
+			Null, Left, 9, Green, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} -> {1}", Custom String("Acknowledge"), Custom String("Kill yourself")), Null, Null, Left,
+			11, Green, White, White, Visible To and String, Default Visibility);
+	}
+}
+
+rule("refill ult")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Ultimate) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
