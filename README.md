@@ -18,6 +18,13 @@ Contains the Workshop scripts I used for the Hitbox project. As well as the plac
 
 Feel free to use these resources for whatever you want.
 
+# The Remaining Hitboxes (2020 Oct 17)
+
+**↓↓↓ Click me! [YouTube Video] ↓↓↓**
+[![Play](https://img.youtube.com/vi/BAdDe77VnuY/maxresdefault.jpg)](https://youtu.be/BAdDe77VnuY)
+
+Hitbox Playground: **0A3TE** to play with Genji's Deflect, Sigma's Kinetic Grasp and D.Va's Defense Matrix in game!
+
 # Current hitboxes (1.48 LIVE)
 
 **↓↓↓ Click me! [YouTube Video] ↓↓↓**
@@ -236,6 +243,7 @@ Therefore after one scan, you should only see the following types of lines
 
 |Date||
 |:--|:--|
+|201017|Updated the playlist, GIF album and the latest YouTube vid|
 |200512|Added color code explanation|
 |200513|Added Junkrat's Mine, Junkrat's Trap, Genji's Deflect, Training Bot, Brigitte Shield, Mercy Valkyrie to the playlist|
 |200519|Updated the playlist to reflect hitbox changes in 1.48 LIVE|
