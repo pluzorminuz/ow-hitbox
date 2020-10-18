@@ -1,0 +1,509 @@
+settings
+{
+	lobby
+	{
+		Data Center Preference: Singapore
+		Max Spectators: 0
+		Max Team 1 Players: 1
+		Max Team 2 Players: 1
+	}
+
+	modes
+	{
+		disabled Control
+		{
+			Limit Valid Control Points: First
+		}
+
+		Team Deathmatch
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+
+		General
+		{
+			Game Mode Start: Manual
+			Respawn Time Scalar: 0%
+			Spawn Health Packs: Disabled
+		}
+	}
+
+	heroes
+	{
+		Team 2
+		{
+			Mercy
+			{
+				Weapons Enabled: Caduceus Staff Only
+			}
+
+			Symmetra
+			{
+				Sentry Turret Cooldown Time: 0%
+				Spawn With Ultimate Ready: On
+				Teleporter Cooldown Time: 0%
+			}
+
+			Wrecking Ball
+			{
+				Infinite Ultimate Duration: On
+			}
+		}
+
+		General
+		{
+			Ability Cooldown Time: 0%
+			Infinite Ultimate Duration: On
+			Ultimate Duration: 500%
+			Ultimate Generation: 500%
+			Ultimate Generation - Combat: 500%
+			Ultimate Generation - Passive: 500%
+
+			Bastion
+			{
+				Infinite Ultimate Duration: On
+				Spawn With Ultimate Ready: On
+			}
+
+			McCree
+			{
+				Combat Roll: Off
+				Damage Dealt: 500%
+				Flashbang: Off
+				No Ammunition Requirement: On
+				Quick Melee: Off
+				Secondary Fire: Off
+				Ultimate Ability Deadeye: Off
+			}
+
+			Mei
+			{
+				Blizzard Freeze Minimum: 0%
+				Blizzard Freeze Rate Scalar: 500%
+				No Ammunition Requirement: On
+				Spawn With Ultimate Ready: On
+				Weapon Freeze Duration Scalar: 500%
+				Weapon Freeze Minimum: 0%
+				Weapon Freeze Rate Scalar: 500%
+			}
+
+			Zenyatta
+			{
+				Spawn With Ultimate Ready: On
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: L_scan_height
+		1: L_scan_depth
+		2: R_total_hit
+		3: R_total_crit
+		5: RAY_CAST_VECTORS
+		6: BOTS_VECTORS
+		7: __FIRST_HERO
+		8: HERO_ARRAY
+		9: CAMERA_HEIGHT
+		11: SPHERE_RADIUS
+		12: HERO_NUM
+		13: L_hit_count
+		14: HERO_COUNT
+		15: BOT_POSITION
+		16: CAMERA_VECTORS
+		17: CAMERA_DISTANCE
+		18: CRIT_BOT_POSITION
+		19: crit_depth_min
+		20: crit_depth_max
+		21: crit_height_min
+		22: crit_height_max
+		23: L_total_hit
+		24: L_total_crit
+		26: DELTA_DEPTH_STATIC
+		27: DELTA_HEIGHT_STATIC
+		28: SHOOTER_VECTORS
+		29: R_scan_height
+		30: R_scan_depth
+		31: R_hit_count
+		33: SCAN_HEIGHT_LIMIT
+		34: SCAN_DEPTH_LIMIT
+		35: hud_bot_rotation
+		36: hud_ray_rotation
+		37: hud_camera_rotation
+		39: CAMERA_360_ANGLE
+		40: SCAN_DEPTH_BASE
+		41: SCAN_HEIGHT_BASE
+		42: SCAN_WAIT
+		43: _SERVER_TIMER_L
+		44: _SERVER_TIMER_R
+		49: __GLOBAL_SETUP
+		50: _FRAME
+
+	player:
+		0: l_hit_store
+		1: r_hit_store
+		2: pos
+}
+
+subroutines
+{
+	1: sub_default_face
+	4: action_b1_routine_junkrat
+	15: action_use_ultimate
+}
+
+rule("global setup")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.__GLOBAL_SETUP = Array(Hero(Ana), -15, 15, 0, 15, 100);
+		Global.__FIRST_HERO = Global.__GLOBAL_SETUP[0];
+		Global.SCAN_DEPTH_BASE = Global.__GLOBAL_SETUP[1];
+		Global.SCAN_DEPTH_LIMIT = Global.__GLOBAL_SETUP[2];
+		Global.SCAN_HEIGHT_BASE = Global.__GLOBAL_SETUP[3];
+		Global.SCAN_HEIGHT_LIMIT = Global.__GLOBAL_SETUP[4];
+		Global.crit_depth_min = -63;
+		Global.crit_depth_max = 24;
+		Global.crit_height_min = 217;
+		Global.crit_height_max = 305;
+		Global.L_scan_height = Global.SCAN_HEIGHT_BASE;
+		Global.L_scan_depth = Global.SCAN_DEPTH_BASE;
+		Global.R_scan_height = Global.SCAN_HEIGHT_BASE;
+		Global.R_scan_depth = Global.SCAN_DEPTH_BASE;
+		Global.DELTA_DEPTH_STATIC = Vector(0.100, 0, 0);
+		Global.DELTA_HEIGHT_STATIC = Vector(0, 0.100, 0);
+		"classic scan time"
+		disabled Global.SCAN_WAIT = Max(0.016, 0.016 * Round To Integer(8 * (Absolute Value(Global.SCAN_HEIGHT_LIMIT - Global.SCAN_HEIGHT_BASE)
+			/ 100 - 1), Up));
+		"fixed scan time for slow motion"
+		Global.SCAN_WAIT = 0.080;
+		Global.SPHERE_RADIUS = 0.020;
+		Global.CAMERA_DISTANCE = 3.090;
+		Global.hud_bot_rotation = 0;
+		Global.hud_ray_rotation = 0;
+		Global.hud_camera_rotation = 0;
+		Global.HERO_NUM = 0;
+		Global.HERO_COUNT = 31;
+		Global.BOT_POSITION = Vector(0, 0, 0);
+		Global.CRIT_BOT_POSITION = Vector(18, 6, -36);
+		Global.CAMERA_HEIGHT = 1.250 + Y Component Of(Global.BOT_POSITION);
+		Global.HERO_ARRAY = Empty Array;
+		Modify Global Variable(HERO_ARRAY, Append To Array, All Support Heroes);
+		Modify Global Variable(HERO_ARRAY, Append To Array, All Damage Heroes);
+		Modify Global Variable(HERO_ARRAY, Append To Array, All Tank Heroes);
+		Global.CAMERA_VECTORS = Empty Array;
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(0, 0, 1));
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(-0.707, 0, 0.707));
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(0.707, 0, 0.707));
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(-1, 0, 0));
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(1, 0, 0));
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(0, 0, -1));
+		Modify Global Variable(CAMERA_VECTORS, Append To Array, Global.CAMERA_DISTANCE * Vector(0, 1, -0.001));
+		Global.SHOOTER_VECTORS = Empty Array;
+		Modify Global Variable(SHOOTER_VECTORS, Append To Array, Vector(0, -1.425, 9));
+		Modify Global Variable(SHOOTER_VECTORS, Append To Array, Vector(0, -1.425, -9));
+		Global.RAY_CAST_VECTORS = Empty Array;
+		Modify Global Variable(RAY_CAST_VECTORS, Append To Array, 3.090 * Vector(0, 0, 1));
+		Modify Global Variable(RAY_CAST_VECTORS, Append To Array, 3.090 * Vector(0, 0, -1));
+		Modify Global Variable(RAY_CAST_VECTORS, Append To Array, Global.DELTA_DEPTH_STATIC);
+		Modify Global Variable(RAY_CAST_VECTORS, Append To Array, Global.DELTA_HEIGHT_STATIC);
+		Global.BOTS_VECTORS = Empty Array;
+		Modify Global Variable(BOTS_VECTORS, Append To Array, Vector(0, 0, 1));
+		Modify Global Variable(BOTS_VECTORS, Append To Array, Vector(0, 0, 1));
+		disabled Create Dummy Bot(Global.__FIRST_HERO, Team 2, 0, Global.BOT_POSITION, Vector(0, 0, 0));
+		Global.CAMERA_360_ANGLE = 359;
+	}
+}
+
+rule("respawn the bot")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Team Of(Event Player) == Team 2;
+	}
+
+	actions
+	{
+		Wait(1, Ignore Condition);
+		Teleport(Event Player, Global.BOT_POSITION);
+		Start Facing(Event Player, Global.BOTS_VECTORS[0], 10000, To World, Direction and Turn Rate);
+		"for hammond ball form"
+		disabled Press Button(Event Player, Ability 1);
+		"for ultimates"
+		disabled Press Button(Event Player, Ultimate);
+		"for reinhardt shield up"
+		disabled Start Holding Button(Event Player, Secondary Fire);
+		Set Max Health(Event Player, 1000);
+		Start Heal Over Time(Event Player, Event Player, 9999, 10000);
+		disabled Call Subroutine(action_b1_routine_junkrat);
+		disabled Call Subroutine(action_use_ultimate);
+		"5 below: for slow scan, need disable first hero spawn when server starts"
+		Set Slow Motion(10);
+		disabled Press Button(Event Player, Ultimate);
+		disabled Wait(1.200, Ignore Condition);
+		disabled Communicate(Players In Slot(0, Team 1), Group Up);
+		disabled Press Button(Players In Slot(0, Team 1), Interact);
+	}
+}
+
+rule("respawn myself")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Alive(Event Player) == True;
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Wait(0.016, Ignore Condition);
+		disabled Set Status(Event Player, Null, Phased Out, 9999);
+		Call Subroutine(sub_default_face);
+	}
+}
+
+rule("clear status on bot death")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Clear Status(Event Player, Frozen);
+		Clear Status(Event Player, Stunned);
+	}
+}
+
+rule("hud setup")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == False;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("L scan height"), Global.L_scan_height), Null, Null, Left, 2, Yellow,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("L scan depth"), Global.L_scan_depth), Null, Null, Left, 3, Yellow,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("L hit count"), Global.L_total_hit), Null, Null, Left, 11, Yellow,
+			White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("ROTATIONS B-R-C"), String("{0} - {1} - {2}",
+			Global.hud_bot_rotation, Global.hud_ray_rotation, Global.hud_camera_rotation)), Null, Null, Right, 20, White, White, White,
+			Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("server load"), Server Load), Null, Null, Right, 100, Green, White,
+			White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1} {2}", Custom String("scan f"), Global._SERVER_TIMER_L, Global._SERVER_TIMER_R), Null,
+			Null, Right, 101, Yellow, White, White, Visible To and String, Default Visibility);
+		Create HUD Text(Event Player, String("{0} {1}", Custom String("frame"), Global._FRAME), Null, Null, Right, 101, White, White,
+			White, Visible To and String, Default Visibility);
+	}
+}
+
+rule("scan L frame")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		(Is Button Held(Event Player, Interact) || Is Communicating(Event Player, Ultimate Status)) == True;
+	}
+
+	actions
+	{
+		Chase Global Variable At Rate(_SERVER_TIMER_L, 10000, 100, Destination and Rate);
+		For Global Variable(_FRAME, 0, Global.__GLOBAL_SETUP[5], 1);
+			For Global Variable(L_scan_depth, Global.SCAN_DEPTH_BASE, Global.SCAN_DEPTH_LIMIT + 1, 1);
+				For Global Variable(L_scan_height, Global.SCAN_HEIGHT_BASE, Global.SCAN_HEIGHT_LIMIT + 1, 1);
+					"if ray hits player"
+					If(Ray Cast Hit Player(Position Of(Event Player)
+						+ Global.RAY_CAST_VECTORS[0] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+						Position Of(Event Player)
+						+ Global.RAY_CAST_VECTORS[1] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+						All Players(All Teams), Null, True) != Null);
+						Modify Player Variable(Event Player, l_hit_store, Append To Array, 10000 * Ray Cast Hit Position(Position Of(Event Player)
+							+ Global.RAY_CAST_VECTORS[0] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+							Position Of(Event Player)
+							+ Global.RAY_CAST_VECTORS[1] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+							All Players(All Teams), Null, True));
+						disabled Event Player.l_hit_store[Global.L_scan_height] = 0;
+						Global.L_total_hit += 1;
+					"if hit"
+					End;
+					"if ray hits player (R)"
+					If(Ray Cast Hit Player(Position Of(Event Player)
+						+ Global.RAY_CAST_VECTORS[1] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+						Position Of(Event Player)
+						+ Global.RAY_CAST_VECTORS[0] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+						All Players(All Teams), Null, True) != Null);
+						Modify Player Variable(Event Player, r_hit_store, Append To Array, 10000 * Ray Cast Hit Position(Position Of(Event Player)
+							+ Global.RAY_CAST_VECTORS[1] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+							Position Of(Event Player)
+							+ Global.RAY_CAST_VECTORS[0] + Global.RAY_CAST_VECTORS[3] * Global.L_scan_height + Global.RAY_CAST_VECTORS[2] * Global.L_scan_depth,
+							All Players(All Teams), Null, True));
+						Global.R_total_hit += 1;
+					"if hit"
+					End;
+				"for height"
+				End;
+				disabled Wait(Global.SCAN_WAIT, Ignore Condition);
+			"for depth"
+			End;
+			Event Player.pos = 10000 * Position Of(Event Player);
+			Enable Inspector Recording;
+			Disable Inspector Recording;
+			Event Player.l_hit_store = Empty Array;
+			Event Player.r_hit_store = Empty Array;
+			Wait(Global.SCAN_WAIT, Ignore Condition);
+		"for frame"
+		End;
+		Play Effect(All Players(All Teams), Debuff Impact Sound, White, Event Player, 200);
+		Stop Chasing Global Variable(_SERVER_TIMER_L);
+	}
+}
+
+rule("reset ALL")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Communicating(Event Player, Voice Line Up) == True;
+	}
+
+	actions
+	{
+		Global.L_scan_depth = 0;
+		Global.L_scan_height = 0;
+		Global.R_scan_depth = 0;
+		Global.R_scan_height = 0;
+		Global.L_total_hit = 0;
+		Global.L_total_crit = 0;
+		Global.R_total_hit = 0;
+		Global.R_total_crit = 0;
+		Global.crit_depth_min = 1000;
+		Global.crit_depth_max = -1000;
+		Global.crit_height_min = 1000;
+		Global.crit_height_max = -1000;
+		Global.L_hit_count = 0;
+		Global.R_hit_count = 0;
+		Global.SCAN_HEIGHT_LIMIT = -1000;
+	}
+}
+
+rule("sound")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Host Player == True;
+		Is Button Held(Event Player, Interact) == True;
+	}
+
+	actions
+	{
+		Play Effect(All Players(All Teams), Buff Impact Sound, White, Event Player, 200);
+	}
+}
+
+rule("[SUB] self default spawn pos")
+{
+	event
+	{
+		Subroutine;
+		sub_default_face;
+	}
+
+	actions
+	{
+		Teleport(Event Player, Vector(0, 0, 0));
+		Start Facing(Event Player, Vector(0, 0, 1), 10000, To World, Direction and Turn Rate);
+		Wait(1, Ignore Condition);
+		Stop Facing(Event Player);
+		Wait(2, Ignore Condition);
+		Set Slow Motion(50);
+	}
+}
+
+rule("reset self spawn pos (pree melee)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Melee) == True;
+	}
+
+	actions
+	{
+		Call Subroutine(sub_default_face);
+	}
+}
