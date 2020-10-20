@@ -2,7 +2,7 @@
 
 For maximum precision, the vertices are multiplied by a factor. To use in-game, divide by the factor. The factor is 1000 for Genji/Sigma, and 100 for D.Va (since some coordinate exceed 10m).
 
-The coordinates are already in Overwatch coordinate space.
+The coordinates are already in Overwatch coordinate space. You don't have to convent anything.
 
 ===== GENJI DEFLECT =====
 
