@@ -2,9 +2,9 @@
 
 For maximum precision, the vertices are multiplied by a factor. To use in-game, divide by the factor. The factor is 1000 for Genji/Sigma, and 100 for D.Va (since some coordinate exceed 10m).
 
-The coordinates are already in Overwatch coordinate space. You don't have to convent anything.
+The coordinates are already in Overwatch coordinate space. You don't have to convert anything.
 
-For reference [+x, +y, +z] direction with respect to the player is [left, up, forward]
+For reference [+x, +y, +z] direction with respect to the player is [left, up, forward]. [0, 0, 0] is the player's eyes.
 
 ===== GENJI DEFLECT =====
 
