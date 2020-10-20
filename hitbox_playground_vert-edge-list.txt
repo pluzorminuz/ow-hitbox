@@ -4,6 +4,8 @@ For maximum precision, the vertices are multiplied by a factor. To use in-game, 
 
 The coordinates are already in Overwatch coordinate space. You don't have to convent anything.
 
+For reference [+x, +y, +z] direction with respect to the player is [left, up, forward]
+
 ===== GENJI DEFLECT =====
 
 VERTS (total: 16, factor: 1000)
