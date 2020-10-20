@@ -18,6 +18,12 @@ Contains the Workshop scripts I used for the Hitbox project. As well as the plac
 
 Feel free to use these resources for whatever you want.
 
+# Hitbox Playground \[0A3TE\] Update, and resources for Workshop Creators. (2020 Oct 21)
+
+The old method of (brute force) rotation transformation often overloads the server when using Genji, and also "vibrates" when moving around using any hero. So I updated the code to minimize the server load. The hitbox display is now 100% smoother. :)
+
+For Workshop Creators, if you need the raw vertex and edge list for the hitbox mesh, I've uploaded a [new file](https://github.com/pluzorminuz/ow-hitbox/blob/master/hitbox_playground_vert-edge-list.txt). Hope it will be useful.
+
 # Skins have no effect on hitboxes (2020 Oct 19)
 
 **↓↓↓ Click me! [YouTube Video] ↓↓↓**
@@ -250,6 +256,7 @@ Therefore after one scan, you should only see the following types of lines
 
 |Date||
 |:--|:--|
+|201021|Updated the Hitbox Playground to run smoother, and raw data for Creators|
 |201020|Added skin comparison for Genji, and added dates to past updates|
 |201017|Updated the playlist, GIF album and the latest YouTube vid|
 |200512|Added color code explanation|
