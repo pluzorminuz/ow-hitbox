@@ -18,6 +18,13 @@ Contains the Workshop scripts I used for the Hitbox project. As well as the plac
 
 Feel free to use these resources for whatever you want.
 
+# Skins have no effect on hitboxes (2020 Oct 19)
+
+**↓↓↓ Click me! [YouTube Video] ↓↓↓**
+[![Play](https://img.youtube.com/vi/pNWQqehfi9I/maxresdefault.jpg)](https://www.youtube.com/watch?v=pNWQqehfi9I&list=PL61EEnh7kA_NEbti6BLQmXEtjzcBKuRdY&index=45)
+
+To prove this, I bought myself the skin and actually scanned myself once. There is absolutely zero difference between them.
+
 # The Remaining Hitboxes (2020 Oct 17)
 
 **↓↓↓ Click me! [YouTube Video] ↓↓↓**
@@ -25,7 +32,7 @@ Feel free to use these resources for whatever you want.
 
 Hitbox Playground: **0A3TE** to play with Genji's Deflect, Sigma's Kinetic Grasp and D.Va's Defense Matrix in game!
 
-# Current hitboxes (1.48 LIVE)
+# Current hitboxes (1.48 LIVE) (2020 May 19)
 
 **↓↓↓ Click me! [YouTube Video] ↓↓↓**
 [![Play](https://img.youtube.com/vi/vemd-CfVbKQ/maxresdefault.jpg)](https://youtu.be/vemd-CfVbKQ)
@@ -33,7 +40,7 @@ Hitbox Playground: **0A3TE** to play with Genji's Deflect, Sigma's Kinetic Grasp
 You can also use the Workshop code **HP8XQ** to play with Genji's Deflect hitbox!
 
 
-# OVERWATCH HITBOXES for EVERY HERO
+# OVERWATCH HITBOXES for EVERY HERO (2020 May 13)
 
 Thanks KarQ! It features new visualizations made specifically for this video. I hope you enjoyed!
 
@@ -52,7 +59,7 @@ Each colour represent something different:
 * Teal: Shields (e.g. Brig shield)
 * Orange: Cannot be shot at at that particular angle (e.g. in Genji's Deflect)
 
-# 1.48 PTR changes (Echo and Reinhardt)
+# 1.48 PTR changes (Echo and Reinhardt) (2020 Apr 25)
 
 **↓↓↓ Click me! [YouTube Video] ↓↓↓**
 [![Play](https://img.youtube.com/vi/JEdYlv4zo2o/maxresdefault.jpg)](https://youtu.be/JEdYlv4zo2o)
@@ -80,7 +87,7 @@ More detailed numbers (percentage to old model in brackets):
 
 \*\* This number was taken by considering the entire Head hitbox, disregarding the obstructed portion (because it is hard to define the separation between body and head. Take these numbers very carefully
 
-# Hero Hitboxes uptill 1.47 LIVE
+# Hero Hitboxes uptill 1.47 LIVE (2020 Mar 20)
 
 **↓↓↓ Click me! [YouTube Video] ↓↓↓**
 [![Play](https://img.youtube.com/vi/KzmIBtG1sf0/maxresdefault.jpg)](https://youtu.be/KzmIBtG1sf0)
@@ -243,6 +250,7 @@ Therefore after one scan, you should only see the following types of lines
 
 |Date||
 |:--|:--|
+|201020|Added skin comparison for Genji, and added dates to past updates|
 |201017|Updated the playlist, GIF album and the latest YouTube vid|
 |200512|Added color code explanation|
 |200513|Added Junkrat's Mine, Junkrat's Trap, Genji's Deflect, Training Bot, Brigitte Shield, Mercy Valkyrie to the playlist|
