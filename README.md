@@ -4,6 +4,8 @@ Contains the Workshop scripts I used for the Hitbox project. As well as the plac
 
 ## Useful Links
 
+* [The Remaining Hitboxes by Me](https://youtu.be/BAdDe77VnuY)
+
 * [GIF album](https://imgur.com/a/AN33T4F)
 
 * [YouTube playlist](https://www.youtube.com/playlist?list=PL61EEnh7kA_NEbti6BLQmXEtjzcBKuRdY)
