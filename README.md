@@ -10,11 +10,11 @@ Contains the Workshop scripts I used for the Hitbox project. As well as the plac
 
 * [YouTube playlist](https://www.youtube.com/playlist?list=PL61EEnh7kA_NEbti6BLQmXEtjzcBKuRdY)
 
-* [1.48- Orthographic comparison](https://youtu.be/KzmIBtG1sf0)
+* [1.48- Orthographic comparison](https://youtu.be/vemd-CfVbKQ)
 
 * [Video commentary](https://youtu.be/xsXvr3Cr5k8)
 
-* [OVERWATCH HITBOXES for EVERY HERO by KarQ](https://youtu.be/vemd-CfVbKQ)
+* [OVERWATCH HITBOXES for EVERY HERO by KarQ](https://youtu.be/0UsX3nborfA)
 
 * [Raw video files (Google Drive)](https://drive.google.com/drive/folders/1dAZnbBayD5KdKgHqPL9FgE1Uv40B3Stw?usp=sharing)
 
