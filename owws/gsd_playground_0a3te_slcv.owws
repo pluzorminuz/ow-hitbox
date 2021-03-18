@@ -1,0 +1,744 @@
+settings
+{
+	main
+	{
+		Description: "Genji/Sigma/D.Va Hitbox Playground by pluzorminuz. Let me know if there are any problems! Last Updated: 2021 Mar 09. Reddit: u/spadler097, Discord: pluzorminuz#2542."
+	}
+
+	lobby
+	{
+		Max Team 1 Players: 5
+		Max Team 2 Players: 5
+	}
+
+	modes
+	{
+		disabled Practice Range
+		{
+			Training Partner: Off
+		}
+
+		Team Deathmatch
+		{
+			enabled maps
+			{
+				Workshop Chamber
+			}
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Ability Cooldown Time: 0%
+			No Ammunition Requirement: On
+			Quick Melee: Off
+			Spawn With Ultimate Ready: On
+			Ultimate Generation: 500%
+			Ultimate Generation - Combat: 500%
+			Ultimate Generation - Passive: 500%
+
+			D.Va
+			{
+				Defense Matrix Maximum Time: 500%
+				Defense Matrix Recharge Rate: 500%
+			}
+
+			Genji
+			{
+				Deflect Cooldown Time: 0%
+			}
+		}
+	}
+
+	extensions
+	{
+		Beam Effects
+		Play More Effects
+		Spawn More Dummy Bots
+	}
+}
+
+variables
+{
+	global:
+		0: hero_limits
+		1: hero_num
+		2: f3
+		3: f4
+		4: kinetic_verts
+		5: kinetic_edges
+		6: matrix_verts
+		7: matrix_edges
+		8: deflect_verts
+		9: deflect_edges
+		10: dummy_bot
+		11: shooting_bot
+		12: proj_const
+		13: proj_hero_index
+
+	player:
+		0: view
+		1: loop_j
+		2: player_effect_id
+		3: player_hero
+		4: mhb_target
+		5: bot_hero_index
+		6: proj_p0
+		7: proj_p1
+		8: proj_p2
+		9: proj_dir
+		10: proj_vel
+		11: proj_del
+		12: proj_simtime
+		13: proj_grav
+		14: is_dummy_bot
+		15: is_shooting_bot
+		16: proj_index
+		17: button_to_hold
+		18: dir_to_fac
+}
+
+subroutines
+{
+	0: sub_matrix_p1
+	1: sub_kinetic_p1
+	2: sub_deflect_p1
+	3: destroy
+	4: spawn_bot
+	5: proj_calc
+	6: init_trajectory
+	7: get_proj_data
+}
+
+rule("init const")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Disable Inspector Recording;
+		Global.dummy_bot = Empty Array;
+		Global.f3 = 100;
+		Global.f4 = 1000;
+		Global.matrix_verts = Array(Vector(-125.223, -99.415, 79.635), Vector(-125.223, 99.696, 79.635), Vector(125.266, -99.415, 79.635), Vector(125.266, 99.696, 79.635), Vector(-125.223, -99.415, 1025.124), Vector(-125.223, 99.696, 1025.120), Vector(125.266, -99.415, 1025.124), Vector(125.266, 99.696, 1025.120));
+		Global.matrix_edges = Array(Array(2, 0), Array(0, 1), Array(1, 3), Array(3, 2), Array(6, 2), Array(3, 7), Array(7, 6), Array(4, 6), Array(7, 5), Array(5, 4), Array(0, 4), Array(5, 1));
+		Global.kinetic_verts = Array(Vector(999.816, 1099.714, 2599.862), Vector(999.816, -1599.897, 2599.862), Vector(-1000.300, 1099.714, 2599.860), Vector(-1000.306, -1599.902, 2599.858), Vector(999.816, 1099.714, 403.875), Vector(999.816, -1599.900, 403.875), Vector(-1000.306, 1099.714, 403.875), Vector(-1000.306, -1599.897, 403.875));
+		Global.kinetic_edges = Array(Array(5, 7), Array(1, 5), Array(0, 1), Array(7, 6), Array(2, 3), Array(4, 5), Array(2, 6), Array(0, 2), Array(7, 3), Array(6, 4), Array(4, 0), Array(3, 1));
+		Global.deflect_verts = Array(Vector(-747.048, -1500.072, -498.838), Vector(-747.048, 750.664, -498.838), Vector(748.471, -1500.072, -498.838), Vector(748.471, 750.664, -498.838), Vector(-747.048, -1500.072, 999.127), Vector(-747.048, 750.664, 999.127), Vector(748.471, -1500.072, 999.127), Vector(748.471, 750.664, 999.127), Vector(502.177, -1500.072, -498.837), Vector(-500.753, -1500.072, -498.837), Vector(-500.753, 750.663, -498.838), Vector(502.177, 750.663, -498.838), Vector(502.177, 750.663, 3.852), Vector(-500.753, 750.663, 3.852), Vector(502.177, -1500.072, 3.852), Vector(-500.753, -1500.072, 3.852));
+		Global.deflect_edges = Array(Array(9, 0), Array(0, 1), Array(11, 3), Array(3, 2), Array(7, 6), Array(5, 4), Array(6, 2), Array(3, 7), Array(0, 4), Array(5, 1), Array(2, 8), Array(13, 15), Array(1, 10), Array(12, 14), Array(4, 6), Array(7, 5), Array(12, 13), Array(14, 15), Array(14, 8), Array(15, 9), Array(11, 12), Array(10, 13), Array(10, 9), Array(11, 8));
+		Global.hero_limits = Array(Hero(Sigma), Hero(D.Va), Hero(Genji));
+		Global.proj_hero_index = Array(Hero(Junkrat), Hero(Zarya), Hero(Ana));
+		Global.proj_const = Array(Array(-12.350, 25, 0.075, 3, Button(Primary Fire), Vector(1, 0.700, 1)), Array(-9.840, 25, 0.100, 3, Button(Secondary Fire), Vector(-1, 0.500, 1)), Array(0, 20, 0, 10, Button(Primary Fire), Vector(-1, 0, 0)));
+	}
+}
+
+rule("init huds")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Create HUD Text(All Players(All Teams), Null, Null, String("{0} {1} {2}", Server Load, Server Load Average, String("{0} {1} {2}", Server Load Peak, Entity Count, Text Count)), Right, -100, Color(Gray), Color(Gray), Color(Gray), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Custom String("Code: 0A3TE"), Custom String("Genji/Sigma/D.Va Hitbox Playground (v1.0.0.210309)"), Custom String("by pluzorminuz"), Top, 1, Color(Yellow), Color(White), Color(Aqua), Visible To, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Reload), String("({0})", Input Binding String(Button(Reload)))), Custom String("- toggle camera"), Left, 8, Color(Green), Color(Green), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("{0} {1}", Button(Melee), String("({0})", Input Binding String(Button(Melee)))), Custom String("- teleport selected bot"), Left, 9, Color(Green), Color(Aqua), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, String("{0} {1} {2}", Custom String("<-"), Button(Primary Fire), String("{0} {1} {2}", Input Binding String(Button(Primary Fire)), Custom String("/"), String("{0} {1} {2}", Input Binding String(Button(Secondary Fire)), Button(Secondary Fire), Custom String("->")))), String("{0} {1} {2}", Custom String("- select hitbox-displaying bot hero"), Global.hero_limits[Local Player.bot_hero_index], Hero Icon String(Global.hero_limits[Local Player.bot_hero_index])), Left, 10, Color(Green), Color(Orange), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Ultimate Status"), Custom String("- confirm hitbox-displaying bot hero change"), Left, 11, Color(Green), Color(Blue), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), Null, Custom String("Acknowledge"), Custom String("- change hero"), Left, 12, Color(Green), Color(Yellow), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("Looking at"), Player Closest To Reticle(Local Player, Opposite Team Of(Team Of(Local Player))), Hero Icon String(Hero Of(Player Closest To Reticle(Local Player, Opposite Team Of(Team Of(Local Player)))))), Null, Null, Left, 20, Color(White), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("[Interact] Selected"), Local Player.mhb_target, Hero Icon String(Hero Of(Local Player.mhb_target))), Null, Null, Left, 21, Color(Blue), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0}: {1}", Custom String("Dot"), Dot Product(Facing Direction Of(Local Player), Facing Direction Of(Local Player.mhb_target))), Null, Null, Left, 22, Color(Yellow), Color(White), Color(White), Visible To and String, Default Visibility);
+		Create HUD Text(All Players(All Teams), String("{0} {1}", Custom String("Deflect"), Dot Product(Facing Direction Of(Local Player), Facing Direction Of(Local Player.mhb_target)) < 0), Null, Null, Left, 23, Color(Yellow), Color(White), Color(White), Visible To and String, Default Visibility);
+		Call Subroutine(spawn_bot);
+		"<- primary hero secondary -> ultimate status, change bot hero"
+		disabled Create HUD Text(All Players(All Teams), String("{0} {1} {2}", Custom String("<-"), Input Binding String(Button(Primary Fire)), String("{0} {1} {2}", Global.hero_limits[Local Player.bot_hero_index], Hero Icon String(Global.hero_limits[Local Player.bot_hero_index]), String("{0} {1} {2}", Input Binding String(Button(Secondary Fire)), Custom String("->"), Custom String("Ultimate Status - Change Bot Hero")))), Null, Null, Left, 10, Color(Green), Color(White), Color(White), Visible To and String, Default Visibility);
+	}
+}
+
+rule("player init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.player_effect_id = Empty Array;
+		Set Max Health(Event Player, 1000);
+	}
+}
+
+rule("dummy bot init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		If(Slot Of(Event Player) == 6);
+			Modify Global Variable(dummy_bot, Append To Array, Event Player);
+			Event Player.is_dummy_bot = True;
+		Else If(Slot Of(Event Player) > 6);
+			Modify Global Variable(shooting_bot, Append To Array, Event Player);
+			Event Player.is_shooting_bot = True;
+		End;
+	}
+}
+
+rule("shooting bot init")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.is_shooting_bot == True;
+	}
+
+	actions
+	{
+		Start Rule(get_proj_data, Restart Rule);
+		Start Rule(init_trajectory, Restart Rule);
+		Wait(1, Ignore Condition);
+		Start Holding Button(Event Player, Event Player.button_to_hold);
+		Set Facing(Event Player, Event Player.dir_to_fac, To World);
+	}
+}
+
+rule("dummy bot init spawn")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Dummy Bot(Event Player) == True;
+	}
+
+	actions
+	{
+		Set Max Health(Event Player, 1000);
+		Start Heal Over Time(Event Player, Event Player, 9999, 100);
+	}
+}
+
+rule("change hero routine")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.player_hero != Hero Of(Event Player);
+		Event Player.is_shooting_bot != True;
+		Has Spawned(Event Player) == True;
+	}
+
+	actions
+	{
+		Event Player.player_hero = Hero Of(Event Player);
+		Call Subroutine(destroy);
+		If(Hero Of(Event Player) == Hero(Genji));
+			Call Subroutine(sub_deflect_p1);
+			Event Player.view = True;
+		Else If(Hero Of(Event Player) == Hero(D.Va));
+			Call Subroutine(sub_matrix_p1);
+			Event Player.view = True;
+		Else If(Hero Of(Event Player) == Hero(Sigma));
+			Call Subroutine(sub_kinetic_p1);
+			Event Player.view = True;
+		End;
+		Start Heal Over Time(Event Player, Event Player, 9999, 100);
+	}
+}
+
+rule("[sub] spawn bot")
+{
+	event
+	{
+		Subroutine;
+		spawn_bot;
+	}
+
+	actions
+	{
+		Create Dummy Bot(Global.hero_limits[Global.hero_num], Team 2, 6, Vector(0, 0, 0), Vector(0, 0, 0));
+		If(Current Map == Map(Workshop Chamber));
+			Create Dummy Bot(Hero(Ana), Team 2, 8, Vector(18, 0, -15), Vector(0, 0, 1));
+			Create Dummy Bot(Hero(Zarya), Team 2, 7, Vector(18, 0, -18), Vector(0, 0.400, 1));
+			Create Dummy Bot(Hero(Junkrat), Team 2, 9, Vector(-18, 0, -18), Vector(0, 1, 1));
+		End;
+	}
+}
+
+rule("[player controls] change hero self (acknowledge)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Communicating(Event Player, Acknowledge) == True;
+	}
+
+	actions
+	{
+		Set Player Allowed Heroes(Event Player, Filtered Array(All Heroes, Current Array Element != Hero Of(Event Player)));
+		Set Player Allowed Heroes(Event Player, All Heroes);
+	}
+}
+
+rule("[player controls] teleport bot (melee)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Button Held(Event Player, Button(Melee)) == True;
+	}
+
+	actions
+	{
+		Teleport(Event Player.mhb_target, Position Of(Event Player));
+		Set Facing(Event Player.mhb_target, Facing Direction Of(Event Player), To World);
+	}
+}
+
+rule("[player controls] confirm change bot hero (ult status)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Has Spawned(Event Player) == True;
+		Is Communicating(Event Player, Ultimate Status) == True;
+	}
+
+	actions
+	{
+		Start Forcing Player To Be Hero(Global.dummy_bot, Global.hero_limits[Event Player.bot_hero_index]);
+		Cancel Primary Action(Global.dummy_bot);
+		Stop Holding Button(Global.dummy_bot, Button(Secondary Fire));
+		Set Facing(Global.dummy_bot, Direction From Angles(0, -0.010), To World);
+	}
+}
+
+rule("[player controls] toggle camera variable (reload)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Reload)) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Event Player.view = !Event Player.view;
+	}
+}
+
+rule("[player controls] select player near reticle (interact)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Interact)) == True;
+	}
+
+	actions
+	{
+		Event Player.mhb_target = Player Closest To Reticle(Event Player, Opposite Team Of(Team Of(Event Player)));
+	}
+}
+
+rule("[player controls] cycle bot hero selection decrement (primary fire)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Primary Fire)) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Event Player.bot_hero_index = Event Player.bot_hero_index + -1;
+		If(Event Player.bot_hero_index < 0);
+			Event Player.bot_hero_index = Event Player.bot_hero_index + 3;
+		End;
+	}
+}
+
+rule("[player controls] cycle bot hero selection increment (secondary fire)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Secondary Fire)) == True;
+		Is Dummy Bot(Event Player) != True;
+	}
+
+	actions
+	{
+		Event Player.bot_hero_index = (Event Player.bot_hero_index + 1) % Count Of(Global.hero_limits);
+	}
+}
+
+rule("bot genji deflect loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Hero Of(Event Player) == Hero(Genji);
+	}
+
+	actions
+	{
+		Press Button(Event Player, Button(Ability 2));
+		Wait(2.800, Abort When False);
+		Loop If Condition Is True;
+	}
+}
+
+rule("bot sigma loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Is Alive(Event Player) == True;
+		Hero Of(Event Player) == Hero(Sigma);
+	}
+
+	actions
+	{
+		Wait(0.250, Abort When False);
+		Press Button(Event Player, Button(Ability 1));
+		Wait(3, Abort When False);
+		Loop If Condition Is True;
+	}
+}
+
+rule("bot dva loop")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) == True;
+		Has Spawned(Event Player) == True;
+		Hero Of(Event Player) == Hero(D.Va);
+	}
+
+	actions
+	{
+		Wait(6, Abort When False);
+		Start Holding Button(Event Player, Button(Secondary Fire));
+		Wait(11, Abort When False);
+		Stop Holding Button(Event Player, Button(Secondary Fire));
+		Loop If Condition Is True;
+	}
+}
+
+rule("camera 3rd")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Event Player.view == True;
+	}
+
+	actions
+	{
+		Start Camera(Event Player, Ray Cast Hit Position(Eye Position(Event Player), Eye Position(Event Player) - 4 * Facing Direction Of(Event Player), Null, Event Player, False), Eye Position(Event Player), 50);
+	}
+}
+
+rule("camera 1st")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Dummy Bot(Event Player) != True;
+		Event Player.view == False;
+	}
+
+	actions
+	{
+		Stop Camera(Event Player);
+	}
+}
+
+rule("refill ult")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Button(Ultimate)) == True;
+	}
+
+	actions
+	{
+		Set Ultimate Charge(Event Player, 100);
+	}
+}
+
+rule("[sub] sub_matrix_p1")
+{
+	event
+	{
+		Subroutine;
+		sub_matrix_p1;
+	}
+
+	actions
+	{
+		For Player Variable(Event Player, loop_j, 0, Count Of(Global.matrix_edges), 1);
+			Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation) * Evaluate Once(X Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][0]] / Global.f3)) + Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][0]] / Global.f3)) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][0]] / Global.f3)), Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation) * Evaluate Once(X Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][1]] / Global.f3)) + Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][1]] / Global.f3)) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Global.matrix_verts[Global.matrix_edges[Event Player.loop_j][1]] / Global.f3)), Color(White), Visible To Position and Radius);
+			Modify Player Variable(Event Player, player_effect_id, Append To Array, Last Created Entity);
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
+
+rule("[sub] sub_kinetic_p1")
+{
+	event
+	{
+		Subroutine;
+		sub_kinetic_p1;
+	}
+
+	actions
+	{
+		For Player Variable(Event Player, loop_j, 0, Count Of(Global.kinetic_edges), 1);
+			Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation) * Evaluate Once(X Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][0]] / Global.f4)) + Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][0]] / Global.f4)) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][0]] / Global.f4)), Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation) * Evaluate Once(X Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][1]] / Global.f4)) + Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][1]] / Global.f4)) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Global.kinetic_verts[Global.kinetic_edges[Event Player.loop_j][1]] / Global.f4)), Color(White), Visible To Position and Radius);
+			Modify Player Variable(Event Player, player_effect_id, Append To Array, Last Created Entity);
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
+
+rule("[sub] sub_deflect_p1")
+{
+	event
+	{
+		Subroutine;
+		sub_deflect_p1;
+	}
+
+	actions
+	{
+		For Player Variable(Event Player, loop_j, 0, Count Of(Global.deflect_edges), 1);
+			Create Beam Effect(All Players(All Teams), Grapple Beam, Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation) * Evaluate Once(X Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][0]] / Global.f4)) + Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][0]] / Global.f4)) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][0]] / Global.f4)), Eye Position(Event Player) + World Vector Of(Left, Event Player, Rotation) * Evaluate Once(X Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][1]] / Global.f4)) + Direction From Angles(Horizontal Facing Angle Of(Event Player), Vertical Facing Angle Of(Event Player) - 90) * Evaluate Once(Y Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][1]] / Global.f4)) + Facing Direction Of(Event Player) * Evaluate Once(Z Component Of(Global.deflect_verts[Global.deflect_edges[Event Player.loop_j][1]] / Global.f4)), Color(White), Visible To Position and Radius);
+			Modify Player Variable(Event Player, player_effect_id, Append To Array, Last Created Entity);
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
+
+rule("[sub] destroy beams")
+{
+	event
+	{
+		Subroutine;
+		destroy;
+	}
+
+	actions
+	{
+		For Player Variable(Event Player, loop_j, 0, Count Of(Event Player.player_effect_id), 1);
+			While(Event Player.player_effect_id != Empty Array);
+				Destroy Effect(Event Player.player_effect_id[0]);
+				Modify Player Variable(Event Player, player_effect_id, Remove From Array By Index, 0);
+				Wait(0.016, Ignore Condition);
+			End;
+	}
+}
+
+rule("[sub] projectile bezier calculations")
+{
+	event
+	{
+		Subroutine;
+		proj_calc;
+	}
+
+	actions
+	{
+		Event Player.proj_p0 = Eye Position(Event Player);
+		Event Player.proj_dir = Vertical Facing Angle Of(Event Player) < -89 ? Up : (Vertical Facing Angle Of(Event Player) > 89 ? Down : Normalize(Facing Direction Of(Event Player) + Event Player.proj_del * Up));
+		Event Player.proj_p1 = Event Player.proj_p0 + 0.500 * Event Player.proj_vel * Event Player.proj_simtime * Event Player.proj_dir;
+		Event Player.proj_p2 = Event Player.proj_p0 + Event Player.proj_vel * Event Player.proj_simtime * Event Player.proj_dir + 0.500 * Event Player.proj_simtime * Event Player.proj_simtime * Event Player.proj_grav * Up;
+	}
+}
+
+rule("[sub] create proj trajectory")
+{
+	event
+	{
+		Subroutine;
+		init_trajectory;
+	}
+
+	actions
+	{
+		For Player Variable(Event Player, loop_j, 0, 20, 1);
+			Create Beam Effect(All Players(All Teams), Torbjörn Turret Sight Beam, Evaluate Once(1 - Event Player.loop_j / 10 + Event Player.loop_j * Event Player.loop_j / 400) * Event Player.proj_p0 + Evaluate Once(Event Player.loop_j / 10 - Event Player.loop_j * Event Player.loop_j / 200) * Event Player.proj_p1 + Evaluate Once(Event Player.loop_j * Event Player.loop_j / 400) * Event Player.proj_p2, Evaluate Once(1 - (Event Player.loop_j + 1) / 10 + (Event Player.loop_j + 1) * (Event Player.loop_j + 1) / 400) * Event Player.proj_p0 + Evaluate Once((Event Player.loop_j + 1) / 10 - (Event Player.loop_j + 1) * (Event Player.loop_j + 1) / 200) * Event Player.proj_p1 + Evaluate Once((Event Player.loop_j + 1) * (Event Player.loop_j + 1) / 400) * Event Player.proj_p2, Color(White), Visible To Position and Radius);
+			Wait(0.016, Ignore Condition);
+		End;
+	}
+}
+
+rule("shooting bot recalc")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Event Player.is_shooting_bot == True;
+	}
+
+	actions
+	{
+		Call Subroutine(proj_calc);
+		Wait(0.048, Ignore Condition);
+		Loop;
+	}
+}
+
+rule("[sub] get proj const")
+{
+	event
+	{
+		Subroutine;
+		get_proj_data;
+	}
+
+	actions
+	{
+		Event Player.proj_index = Index Of Array Value(Global.proj_hero_index, Hero Of(Event Player));
+		Event Player.proj_grav = Global.proj_const[Event Player.proj_index][0];
+		Event Player.proj_vel = Global.proj_const[Event Player.proj_index][1];
+		Event Player.proj_del = Global.proj_const[Event Player.proj_index][2];
+		Event Player.proj_simtime = Global.proj_const[Event Player.proj_index][3];
+		Event Player.button_to_hold = Global.proj_const[Event Player.proj_index][4];
+		Event Player.dir_to_fac = Global.proj_const[Event Player.proj_index][5];
+	}
+}
